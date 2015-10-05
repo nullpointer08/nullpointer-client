@@ -1,3 +1,7 @@
+import logging
+logging.basicConfig(filename='demo_display.log', level=logging.DEBUG)
+logging.info('Beginning demo')
+
 from scheduler import Scheduler
 from playlist import FileBasedPlayList
 
@@ -12,3 +16,4 @@ scheduler.start()
 
 raw_input("Press enter to exit\n")
 scheduler.shutdown()
+logging.info('Demo stopped')

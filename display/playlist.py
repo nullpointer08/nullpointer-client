@@ -10,3 +10,9 @@ class FileBasedPlayList(object):
     
     def __iter__(self):
         return iter(self._playlist)
+
+    def __str__(self):
+        return str(self.__repr__())
+    
+    def __repr__(self):
+        return repr(self._playlist)

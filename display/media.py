@@ -13,3 +13,13 @@ class Media(object):
          self.content_type = content_type
          self.content_uri = content_uri
          self.view_time = view_time
+
+    def __repr__(self):
+        return self.__str__()
+    
+    def __str__(self):
+        return (
+            'ContentType=' + self.content_type + 
+            ',ContentUri=' + self.content_uri + 
+            ',ViewTime=' + str(self.view_time)
+        )

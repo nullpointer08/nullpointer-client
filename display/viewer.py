@@ -7,6 +7,7 @@ program termination.
 '''
 
 import time
+import logging
 from media import Media
 from browser import Browser
 from video_player import VideoPlayer
@@ -24,6 +25,7 @@ class Viewer(object):
     }
     
     def display_content(self, content):
+        logging.debug('Viewer received content %s', content)
         viewer = self.VIEWERS[content.content_type]
     
         displayed_time = 0
@@ -36,14 +38,17 @@ class Viewer(object):
             self.keep_alive(viewer, content)
         
         viewer.hide()
+        logging.debug('Viewer finished displaying content %s', content)
         
     def keep_alive(self, viewer, content):
         if not viewer.is_alive():
+            logging.debug('Resurrecting viewer for content %s', content)
             viewer.display_content(content)
         
     def shutdown(self):
-        print "Viewer shut down"
+        logging.debug('Viewer shutdown requested')
         self.running = False
         self.BROWSER.shutdown()
         self.PLAYER.shutdown()
+        logging.debug('Viewer shutdown complete')
 
