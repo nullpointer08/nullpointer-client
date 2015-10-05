@@ -13,7 +13,7 @@ To test in fullsreen mode, do the following:
 1) Create a startup script (e.g. start.sh):
 
 #!/bin/bash
-python demo.py & matchbox_window_manager -use_borders no -use_cursor no
+python demo.py & matchbox-window-manager -use_titlebar no -use_cursor no
 
 2) Run xinit with startup script:
 
