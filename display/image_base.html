@@ -1,0 +1,20 @@
+<html>
+<head>
+</head>
+
+<script type="text/javascript">
+	
+	function loadImageFullScreen(uri) {
+		var width = window.innerWidth;
+		var height = window.innerHeight;
+
+		document.body.innerHTML = "";
+
+		var imageSource = "<img id='image' src='" + uri + "' height=" + height + " width=" + width + " /img>";
+		document.write(imageSource);
+	}
+</script>
+
+<body>
+</body>
+</html>

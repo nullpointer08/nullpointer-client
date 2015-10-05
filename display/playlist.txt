@@ -1,0 +1,3 @@
+web_page,http://bbc.co.uk,6
+image,/home/pi/python_games/cat.png,6
+video,/home/pi/work/own/media/small.mp4,6
