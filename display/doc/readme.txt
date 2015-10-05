@@ -1,0 +1,20 @@
+Requirements:
+
+- uzbl browser (sudo apt-get install uzbl)
+- matchbox_window_manager (sudo apt-get install matchbox-window-manager)
+- xinit (sudo apt-get install xinit)
+
+To test the viewer in the regular desktop environment, you can just run:
+
+$ python demo.py
+
+To test in fullsreen mode, do the following:
+
+1) Create a startup script (e.g. start.sh):
+
+#!/bin/bash
+python demo.py & matchbox_window_manager -use_borders no -use_cursor no
+
+2) Run xinit with startup script:
+
+$ xinit ./start.sh
