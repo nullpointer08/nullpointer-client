@@ -5,6 +5,7 @@ displaying images.
 
 import sh
 import time
+import os
 from media import Media
 
 
@@ -73,7 +74,8 @@ class Browser(object):
         self.command('uri', address)
 
     def show_image(self, img_uri):
-        self.navigate('file://image_base.html')
+        img_background = os.path.dirname(__file__) + '/image_base.html'
+        self.navigate('file://' + img_background)
         self.wait_for_event('LOAD_FINISH')
 
         # Add a geometry change listener that rescales the image
