@@ -18,6 +18,7 @@ class Scheduler(object):
         self.viewer = Viewer()
         self._playlist = []
         self._playlist_lock = Lock()
+        self.running = False
 
     def start(self):
         logging.debug('Starting scheduling')

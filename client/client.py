@@ -85,7 +85,9 @@ class Client(object):
             for media in self.playlist:
                 scheduled_pl.append(media)
         self.scheduler.modify_playlist_atomically(replace_playlist)
-        self.scheduler.start()
+        
+        if not self.scheduler.running:
+            self.scheduler.start()
 
 
     def poll_playlist(self):
