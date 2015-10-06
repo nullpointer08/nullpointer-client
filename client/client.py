@@ -16,12 +16,19 @@ class Client(object):
         self.config = ConfigParser.ConfigParser()
         self.config.readfp(open(config_path))
         self.scheduler = None
+        self.playlist = None
         logging.info('Initiating client with config: %s', config_path)
 
     def fetch_playlist(self):
         url = self.config.get('Server', 'playlist_url')
         logging.debug('Fetching playlist from url %s', url)
-        response = urllib2.urlopen(url).read()
+
+        try:
+            response = urllib2.urlopen(url).read()
+        except Exception, e:
+            logging.error('Could not fetch playlist %s', e)
+            return
+
         playlist_dl = json.loads(response)
         self.download_playlist_files(playlist_dl)
         self.playlist = self.generate_viewer_playlist(playlist_dl)
@@ -44,7 +51,12 @@ class Client(object):
             if os.path.isfile(out_file_path):
                 continue
 
-            downloaded_data = self.download_content(content)
+            try:
+                downloaded_data = self.download_content(content)
+            except Exception, e:
+                logging.error('Failed to download content, %s %s', content, e)
+                continue
+
             content_file = open(out_file_path, 'w+')
             content_file.write(downloaded_data)
 
@@ -62,6 +74,10 @@ class Client(object):
 
 
     def schedule_playlist(self):
+        if self.playlist is None or len(self.playlist) == 0:
+            logging.debug('No playlist to schedule')
+            return
+
         if self.scheduler is None:
             self.scheduler = Scheduler()
         def replace_playlist(scheduled_pl):
