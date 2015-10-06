@@ -1,0 +1,15 @@
+[
+    {
+        "content_type" : "web_page",
+        "content_uri" : "http://bbc.co.uk",
+        "view_time" : "10"
+    }, {
+        "content_type" : "image",
+        "content_uri" : "https://i1.wp.com/fwallpapers.com/files/images/mars-surface.jpg",
+        "view_time" : "10"
+    }, {
+        "content_type" : "video",
+        "content_uri" : "http://techslides.com/demos/sample-videos/small.mp4",
+        "view_time" : "10"
+    }
+]

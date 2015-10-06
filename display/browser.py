@@ -85,6 +85,7 @@ class Browser(object):
     def show_image(self, img_uri):
         logging.debug('Browser beginning to show image %s', img_uri)
         img_background = os.path.dirname(__file__) + '/image_base.html'
+        img_background = os.path.abspath(img_background)
         self.navigate('file://' + img_background)
         self.wait_for_event('LOAD_FINISH')
 
