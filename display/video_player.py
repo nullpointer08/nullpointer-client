@@ -29,4 +29,7 @@ class VideoPlayer(object):
             self.process.process.stdin.put('q')
 
     def is_alive(self):
-        return self.process is not None and self.process.process.alive
+        if self.process is None:
+            return false
+        else:
+            return self.process.process.exit_code is None
