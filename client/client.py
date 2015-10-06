@@ -63,7 +63,7 @@ class Client(object):
     def download_content(self, content):
         content_uri = content['content_uri']
         return urllib2.urlopen(content_uri).read()
-        
+
     def generate_content_filepath(self, content):
         content_uri = content['content_uri']
         uri_split = content_uri.split('.')
@@ -87,8 +87,11 @@ class Client(object):
         self.scheduler.modify_playlist_atomically(replace_playlist)
         self.scheduler.start()
 
+
     def poll_playlist(self):
-        self.fetch_playlist()
-        self.schedule_playlist()
-        poll_time = float(self.config.get('Client', 'playlist_poll_time'))
-        time.sleep(poll_time)
+        while True:
+            self.fetch_playlist()
+            self.schedule_playlist()
+            poll_time = float(self.config.get('Client', 'playlist_poll_time'))
+            time.sleep(poll_time)
+
