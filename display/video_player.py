@@ -16,7 +16,7 @@ class VideoPlayer(object):
         assert content.content_type == Media.VIDEO
         logging.debug('VideoPlayer receiving content %s', content)
         uri = content.content_uri
-        self.process = sh.omxplayer('--loop', '--no-osd', uri, _bg=True)
+        self.process = sh.omxplayer('--no-osd', uri, _bg=True)
 
     # Cannot really hide player, must shut down
     def hide(self):
@@ -25,11 +25,22 @@ class VideoPlayer(object):
 
     def shutdown(self):
         logging.debug('VideoPlayer shutdown called')
+        # The video player creates 2 processes to be killed
+        def kill(pgrep_line):
+            pid = str(pgrep_line).strip()
+            if str(pid).isdigit():
+                logging.debug('Killing VideoPlayer PID %s', str(pid))
+                sh.kill(-9, str(pid))
         if self.is_alive():
-            self.process.process.stdin.put('q')
+            # Finds PIDs of omxplayer and passes them to the kill func
+            sh.pgrep('omxplayer', _out=kill)
 
     def is_alive(self):
         if self.process is None:
             return false
         else:
             return self.process.process.exit_code is None
+
+
+def print_std(line):
+    print str(line)
