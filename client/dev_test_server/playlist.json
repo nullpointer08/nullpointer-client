@@ -1,15 +1,7 @@
-[
-    {
-        "content_type" : "web_page",
-        "content_uri" : "http://bbc.co.uk",
-        "view_time" : "10"
-    }, {
-        "content_type" : "image",
-        "content_uri" : "https://i1.wp.com/fwallpapers.com/files/images/mars-surface.jpg",
-        "view_time" : "10"
-    }, {
-        "content_type" : "video",
-        "content_uri" : "http://techslides.com/demos/sample-videos/small.mp4",
-        "view_time" : "10"
-    }
-]
+{
+    "id": 3,
+    "owner": 1,
+    "name": "testiplaylist",
+    "description": "testaus",
+    "media_schedule_json": "[{u'time': 60, u'uri': u'http://bbc.co.uk', u'type': u'web_page'}, {u'time': 60, u'uri': u'https://i1.wp.com/fwallpapers.com/files/images/mars-surface.jpg', u'type': u'image'}, {u'time': 10, u'uri': u'http://techslides.com/demos/sample-videos/small.mp4', u'type': u'video'}]"
+}

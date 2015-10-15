@@ -4,6 +4,7 @@ A control class for the video player.
 
 import sh
 import logging
+import platform
 from media import Media
 
 class VideoPlayer(object):
@@ -16,8 +17,12 @@ class VideoPlayer(object):
         assert content.content_type == Media.VIDEO
         logging.debug('VideoPlayer receiving content %s', content)
         uri = content.content_uri
-        self.process = sh.omxplayer('--no-osd', uri, _bg=True)
-
+        if(platform.linux_distribution()[0] == "Ubuntu"):
+            self.process = sh.vlc('--no-osd','-f', '--no-interact','--repeat', 
+                                  '--mouse-hide-timeout', '--no-video-title-show',
+                                  '--video-on-top', uri, _bg=True)
+        else:
+            self.process = sh.omxplayer('--no-osd', uri, _bg=True)
     # Cannot really hide player, must shut down
     def hide(self):
         logging.debug('VideoPlayer hide called')
@@ -33,11 +38,14 @@ class VideoPlayer(object):
                 sh.kill(-9, str(pid))
         if self.is_alive():
             # Finds PIDs of omxplayer and passes them to the kill func
-            sh.pgrep('omxplayer', _out=kill)
+            if(platform.linux_distribution()[0] == "Ubuntu"):
+                sh.pgrep('vlc', _out=kill)
+            else:
+                sh.pgrep('omxplayer', _out=kill)
 
     def is_alive(self):
         if self.process is None:
-            return false
+            return False
         else:
             return self.process.process.exit_code is None
 

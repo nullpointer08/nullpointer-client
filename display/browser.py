@@ -8,7 +8,7 @@ import time
 import os
 import logging
 from media import Media
-
+logging.getLogger("sh").setLevel(logging.WARNING)
 
 class Browser(object):
 
