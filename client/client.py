@@ -3,7 +3,6 @@ logging.basicConfig(filename='demo_client.log', filemode='w', level=logging.DEBU
 import ConfigParser
 import urllib2
 import json
-import sys
 from ast import literal_eval
 import time
 import os
@@ -20,6 +19,7 @@ class Client(object):
     def __init__(self, config_path):
         self.config = ConfigParser.ConfigParser()
         self.config.readfp(open(config_path))
+        self.MEDIA_FOLDER = self.config.get('Storage', 'media_folder')
         self.scheduler = None
         self.playlist = None
         logging.debug('Initiating client with config: %s', config_path)
@@ -55,7 +55,6 @@ class Client(object):
 
 # NOTE: Also sets content_uri to local uri
     def download_playlist_files(self, playlist):
-        media_folder = self.config.get('Storage', 'media_folder')
         playlist_changed = False;
         for content in playlist:
             out_file_path = self.generate_content_filepath(content.content_uri)
@@ -90,8 +89,7 @@ class Client(object):
         uri_split = content_uri.split('.')
         file_extension = uri_split[len(uri_split) - 1]
         file_name = str(hash(content_uri))
-        media_folder = self.config.get('Storage', 'media_folder')
-        return media_folder + file_name + '.' + file_extension
+        return self.MEDIA_FOLDER + file_name + '.' + file_extension
 
 
     def schedule_playlist(self):
@@ -118,7 +116,7 @@ class Client(object):
                 self.schedule_playlist()
                 poll_time = float(self.config.get('Client', 'playlist_poll_time'))
                 time.sleep(poll_time)
-        except KeyboardInterrupt, e:
+        except KeyboardInterrupt:
             if self.scheduler:
                 self.scheduler.shutdown()
                                 
