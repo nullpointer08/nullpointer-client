@@ -18,6 +18,8 @@ class Browser(object):
         self._event_flags = {}
         self._event_listeners = {}
         self.start()
+        self.command('set', 'show_status=0')
+        self.command('set', 'geometry=maximized')
 
     def display_content(self, media):
         assert media.content_type in (Media.WEB_PAGE, Media.IMAGE)
@@ -89,10 +91,10 @@ class Browser(object):
         img_background = os.path.abspath(img_background)
         self.navigate('file://' + img_background)
         self.wait_for_event('LOAD_FINISH')
-
         # Add a geometry change listener that rescales the image
         def load_img_command():
             self.command('js', 'loadImageFullScreen("' + img_uri + '")')
+            
         self._event_listeners['GEOMETRY_CHANGED'] = load_img_command
 
         load_img_command()  # Loads the fullscreen image with JavaScript
@@ -102,3 +104,5 @@ class Browser(object):
             return False
         else:
             return self.process.process.exit_code is None
+
+
