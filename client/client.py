@@ -25,7 +25,7 @@ class Client(object):
         self.playlist = None
         # Get the device id and format the playlist url to use it
         device_id_file = open(self.config.get('Device', 'device_id_file'), 'r')
-        self.device_id = device_id_file.read()
+        self.device_id = device_id_file.read().strip()
         device_id_file.close()
         incomplete_url = self.config.get('Server', 'playlist_url')
         playlist_url = incomplete_url.format(**{'device_id': self.device_id})
