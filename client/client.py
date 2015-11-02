@@ -9,19 +9,27 @@ import os
 from display.media import Media
 from display.scheduler import Scheduler
 
+
 class Client(object):
-    
-    SCHEDULE_NAME_STRING = 'media_schedule_json';
-    SCHEDULE_TIME_STRING  = 'time';
-    SCHEDULE_TYPE_STRING  = 'type';
-    SCHEDULE_URI_STRING = 'uri';
-    
+
+    SCHEDULE_NAME_STRING = 'media_schedule_json'
+    SCHEDULE_TIME_STRING = 'time'
+    SCHEDULE_TYPE_STRING = 'type'
+    SCHEDULE_URI_STRING = 'uri'
+
     def __init__(self, config_path):
         self.config = ConfigParser.ConfigParser()
         self.config.readfp(open(config_path))
         self.MEDIA_FOLDER = self.config.get('Storage', 'media_folder')
         self.scheduler = None
         self.playlist = None
+        # Get the device id and format the playlist url to use it
+        device_id_file = open(self.config.get('Device', 'device_id_file'), 'r')
+        self.device_id = device_id_file.read()
+        device_id_file.close()
+        incomplete_url = self.config.get('Server', 'playlist_url')
+        playlist_url = incomplete_url.format(**{'device_id': self.device_id})
+        self.config.set('Server', 'playlist_url', playlist_url)
         logging.debug('Initiating client with config: %s', config_path)
 
     def fetch_playlist(self):
@@ -37,7 +45,7 @@ class Client(object):
         media_schedule = literal_eval(playlist_dl[Client.SCHEDULE_NAME_STRING])
         media_schedule = self.generate_viewer_playlist(media_schedule)
         logging.debug('Media schedule %s', media_schedule)
-        #if this after playlist saved on disk
+        # if this after playlist saved on disk
         self.download_playlist_files(media_schedule)
         self.playlist = media_schedule
         logging.debug('Using playlist %s', self.playlist)
@@ -45,7 +53,7 @@ class Client(object):
     def generate_viewer_playlist(self, playlist):
         viewer_pl = []
         for content in playlist:
-            logging.debug("Generating playlist for content: %s", content);
+            logging.debug("Generating playlist for content: %s", content)
             content_type = content[Client.SCHEDULE_TYPE_STRING]
             content_uri = content[Client.SCHEDULE_URI_STRING]
             view_time = int(content[Client.SCHEDULE_TIME_STRING])
@@ -53,44 +61,48 @@ class Client(object):
             viewer_pl.append(m)
         return viewer_pl
 
-# NOTE: Also sets content_uri to local uri
+    # NOTE: Also sets content_uri to local uri
     def download_playlist_files(self, playlist):
-        playlist_changed = False;
+        playlist_changed = False
         for content in playlist:
             out_file_path = self.generate_content_filepath(content.content_uri)
             logging.debug(out_file_path)
             if os.path.isfile(out_file_path):
                 logging.debug("Found file %s", out_file_path)
                 content.content_uri = out_file_path
-                continue;
-            playlist_changed = True;
+                continue
+            playlist_changed = True
             try:
-                logging.debug("Downloading content: %s", content);
+                logging.debug("Downloading content: %s", content)
                 downloaded_data = self.download_content(content.content_uri)
                 logging.debug("downloaded_data %s", downloaded_data)
             except Exception, e:
                 logging.error('Failed to download content, %s %s', content, e)
-                return False;
+                return False
             try:
                 content_file = open(out_file_path, 'w+')
                 content_file.write(downloaded_data)
             except IOError, e:
                 logging.error('Failed to save content , %s %s', content, e)
-                return False;
+                return False
             content.content_uri = out_file_path
-            
-        return playlist_changed;
+
+        return playlist_changed
 
     def download_content(self, content_uri):
+        content_uri = self.append_device_id_to_url(content_uri)
         logging.debug("download_content() %s", content_uri)
         return urllib2.urlopen(content_uri).read()
+
+    def append_device_id_to_url(self, url):
+        device_id_query_param = '?devie_id=%s' % self.device_id
+        return url + device_id_query_param
 
     def generate_content_filepath(self, content_uri):
         uri_split = content_uri.split('.')
         file_extension = uri_split[len(uri_split) - 1]
         file_name = str(hash(content_uri))
         return self.MEDIA_FOLDER + file_name + '.' + file_extension
-
 
     def schedule_playlist(self):
         if self.playlist is None or len(self.playlist) == 0:
@@ -99,15 +111,15 @@ class Client(object):
 
         if self.scheduler is None:
             self.scheduler = Scheduler()
+
         def replace_playlist(scheduled_pl):
             del scheduled_pl[:]
             for media in self.playlist:
                 scheduled_pl.append(media)
         self.scheduler.modify_playlist_atomically(replace_playlist)
-        
+
         if not self.scheduler.running:
             self.scheduler.start()
-
 
     def poll_playlist(self):
         try:
@@ -119,4 +131,3 @@ class Client(object):
         except KeyboardInterrupt:
             if self.scheduler:
                 self.scheduler.shutdown()
-                                
