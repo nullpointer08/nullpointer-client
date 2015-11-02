@@ -7,8 +7,9 @@ import logging
 import platform
 from media import Media
 
+
 class VideoPlayer(object):
-    
+
     def __init__(self):
         logging.debug('Initializing VideoPlayer')
         self.process = None
@@ -18,11 +19,14 @@ class VideoPlayer(object):
         logging.debug('VideoPlayer receiving content %s', content)
         uri = content.content_uri
         if(platform.linux_distribution()[0] == "Ubuntu"):
-            self.process = sh.vlc('--no-osd','-f', '--no-interact','--repeat', 
-                                  '--mouse-hide-timeout', '--no-video-title-show',
-                                  '--video-on-top', uri, _bg=True)
+            self.process = sh.vlc(
+                '--no-osd', '-f', '--no-interact', '--repeat',
+                '--mouse-hide-timeout', '--no-video-title-show',
+                '--video-on-top', uri, _bg=True
+            )
         else:
             self.process = sh.omxplayer('--no-osd', uri, _bg=True)
+
     # Cannot really hide player, must shut down
     def hide(self):
         logging.debug('VideoPlayer hide called')
@@ -30,6 +34,7 @@ class VideoPlayer(object):
 
     def shutdown(self):
         logging.debug('VideoPlayer shutdown called')
+
         # The video player creates 2 processes to be killed
         def kill(pgrep_line):
             pid = str(pgrep_line).strip()

@@ -1,15 +1,15 @@
 '''
 Schedules the content in the playlist to be displayed.
-The scheduling occurs in its own thread. To ensure thread safety, the 
-play list should be modified using the modify_playlist_atomically() 
+The scheduling occurs in its own thread. To ensure thread safety, the
+play list should be modified using the modify_playlist_atomically()
 method.
 '''
 
-import time
 import logging
 from threading import Thread
 from threading import Lock
 from viewer import Viewer
+
 
 class Scheduler(object):
 
@@ -52,7 +52,7 @@ class Scheduler(object):
         logging.debug('Scheduler waiting for worker thread to stop')
         self.work_thread.join()
         logging.debug('Scheduler shut down complete')
-        
+
     def modify_playlist_atomically(self, modifier_function):
         logging.debug('Modifying scheduler playlist atomically')
         self._playlist_lock.acquire()

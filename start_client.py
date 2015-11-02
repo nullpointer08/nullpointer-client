@@ -1,6 +1,6 @@
 '''
 Demonstration for a client which downloads a playlist,
-downloads files from the playlist and begins to view them according 
+downloads files from the playlist and begins to view them according
 to the playlist schedule.
 
 Configure the client/client.properties file before starting.

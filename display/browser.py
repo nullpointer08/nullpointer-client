@@ -1,5 +1,5 @@
 '''
-A control class for the browser. Supports navigation to a web page and 
+A control class for the browser. Supports navigation to a web page and
 displaying images.
 '''
 
@@ -10,10 +10,11 @@ import logging
 from media import Media
 logging.getLogger("sh").setLevel(logging.WARNING)
 
+
 class Browser(object):
 
     def __init__(self):
-        logging.debug('Initiation browser')
+        logging.debug('Initializing browser')
         self._event_flags = {}
         self._event_listeners = {}
         self.start()
@@ -58,10 +59,10 @@ class Browser(object):
     def start(self):
         logging.debug('Starting browser process')
         self.process = sh.uzbl(
-            print_events=True, 
-            config='-', 
-            verbose='', 
-            _bg=True, 
+            print_events=True,
+            config='-',
+            verbose='',
+            _bg=True,
             _out=self.process_browser_events
         )
         self.command('set', 'geometry=maximized')
@@ -90,7 +91,7 @@ class Browser(object):
         self.wait_for_event('LOAD_FINISH')
 
         # Add a geometry change listener that rescales the image
-        def load_img_command(): 
+        def load_img_command():
             self.command('js', 'loadImageFullScreen("' + img_uri + '")')
         self._event_listeners['GEOMETRY_CHANGED'] = load_img_command
 
@@ -98,7 +99,6 @@ class Browser(object):
 
     def is_alive(self):
         if self.process is None:
-            return false
+            return False
         else:
             return self.process.process.exit_code is None
-
