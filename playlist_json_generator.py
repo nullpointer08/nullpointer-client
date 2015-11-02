@@ -1,16 +1,20 @@
 import json
 
 QUIT_STRING = '\\q'
-OUT_FILE = 'playlist.json'
 playlist = []
 
 
-def save_and_quit():
-    print '\nSaving current JSON and quitting'
-    json_file = open(OUT_FILE, mode='w')
+def save():
+    filename = read_input('Save to file name: ')
+    json_file = open(filename, mode='w')
     json_string = json.dumps(playlist)
     json_file.write(json_string.encode('utf-8'))
     json_file.close()
+    print 'Saved playlist JSON to file %s' % filename
+
+
+def save_and_quit():
+    save()
     quit()
 
 
@@ -101,6 +105,10 @@ MENU_OPTIONS = (
     {
         'name': 'Remove media',
         'handler': remove_media
+    },
+    {
+        'name': 'Save JSON to file',
+        'handler': save
     },
     {
         'name': 'Load existing JSON file',

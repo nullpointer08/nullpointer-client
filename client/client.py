@@ -75,12 +75,13 @@ class Client(object):
             try:
                 logging.debug("Downloading content: %s", content)
                 downloaded_data = self.download_content(content.content_uri)
-                logging.debug("downloaded_data %s", downloaded_data)
+                logging.debug("downloaded_data")
             except Exception, e:
                 logging.error('Failed to download content, %s %s', content, e)
                 return False
             try:
-                content_file = open(out_file_path, 'w+')
+                logging.debug('Downloading media to %s' % out_file_path)
+                content_file = open(out_file_path, 'w')
                 content_file.write(downloaded_data)
             except IOError, e:
                 logging.error('Failed to save content , %s %s', content, e)
@@ -95,7 +96,7 @@ class Client(object):
         return urllib2.urlopen(content_uri).read()
 
     def append_device_id_to_url(self, url):
-        device_id_query_param = '?devie_id=%s' % self.device_id
+        device_id_query_param = '?device_id=%s' % self.device_id
         return url + device_id_query_param
 
     def generate_content_filepath(self, content_uri):
