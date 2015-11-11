@@ -25,7 +25,8 @@ class VideoPlayer(object):
                 '--video-on-top', uri, _bg=True
             )
         else:
-            self.process = sh.omxplayer('--no-osd', uri, _bg=True)
+            self.process = sh.omxplayer(
+                '--no-osd', '-b', '--loop', uri, _bg=True)
 
     # Cannot really hide player, must shut down
     def hide(self):
