@@ -12,16 +12,17 @@ logging.getLogger("sh").setLevel(logging.WARNING)
 
 
 class Browser(object):
+#CONSTANTS
+    STATIC_FILE_PATH = 'file://' + os.path.abspath(os.path.dirname(__file__))
+    IMG_BG_HTML_FILE = 'image_base.html'
+    UZBL_CSS_FILE = 'uzbl.css'
+    IMG_BACKGROUND_HTML = os.path.join(STATIC_FILE_PATH, IMG_BG_HTML_FILE)
+    UZBL_CSS = os.path.join(STATIC_FILE_PATH, UZBL_CSS_FILE)
 
     def __init__(self):
         logging.debug('Initializing browser')
         
-        #CONSTANTS
-        self.STATIC_FILE_PATH = 'file://' + os.path.abspath(os.path.dirname(__file__)
-        self.IMG_BG_HTML = 'image_base.html'
-        self.UZBL_CSS = 'uzbl.css'
-        self.IMG_BACKGROUND_HTML = os.path.join(STATIC_FILE_PATH,IMG_BG_HTML)
-        self.UZBL_CSS = os.path.join(STATIC_FILE_PATH, UZBL_CSS)
+
 
         self._event_flags = {}
         self._event_listeners = {}
