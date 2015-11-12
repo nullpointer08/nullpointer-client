@@ -10,16 +10,22 @@ import logging
 from media import Media
 logging.getLogger("sh").setLevel(logging.WARNING)
 
-IMG_BACKGROUND_HTML = 'file://'.join(os.path.abspath(os.path.dirname(__file__).join('/image_base.html')))
 
 class Browser(object):
+
     def __init__(self):
         logging.debug('Initializing browser')
+        
+        #CONSTANTS
+        self.STATIC_FILE_PATH = 'file://' + os.path.abspath(os.path.dirname(__file__)
+        self.IMG_BG_HTML = 'image_base.html'
+        self.UZBL_CSS = 'uzbl.css'
+        self.IMG_BACKGROUND_HTML = os.path.join(STATIC_FILE_PATH,IMG_BG_HTML)
+        self.UZBL_CSS = os.path.join(STATIC_FILE_PATH, UZBL_CSS)
+
         self._event_flags = {}
         self._event_listeners = {}
         self.start()
-        self.command('set', 'show_status=0')
-        self.command('set', 'geometry=maximized')
 
     def display_content(self, media):
         assert media.content_type in (Media.WEB_PAGE, Media.IMAGE)
@@ -62,14 +68,18 @@ class Browser(object):
     def start(self):
         logging.debug('Starting browser process')
         self.process = sh.uzbl(
-            geometry='maximized',
-            verbose=0,
-            uri=IMG_BACKGROUND_HTML,
+            config='-',
             _bg=True,
             _out=self.process_browser_events
         )
+        self.command('set', 'verbose=0')
+        self.command('set', 'geometry=maximized')
         self.command('set', 'print_events=1')
         self.command('set', 'show_status=0')
+        self.command('set', 'stylesheet_uri=' + UZBL_CSS)
+        logging.debug('Browser started. Loading background')
+        logging.debug('Background file %s', IMG_BACKGROUND_HTML)
+        self.load_background()
 
     def shutdown(self):
         logging.debug('Shutting down browser')
