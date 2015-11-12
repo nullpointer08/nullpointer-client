@@ -21,9 +21,7 @@ class Browser(object):
 
     def __init__(self):
         logging.debug('Initializing browser')
-        
-
-
+        self.uri_is_image_base = False
         self._event_flags = {}
         self._event_listeners = {}
         self.start()
@@ -90,7 +88,7 @@ class Browser(object):
         if self.is_alive():
             cmd_string = command_type + " " + command + "\n"
             logging.debug('Browser handling command %s', cmd_string)
-            return self.process.process.stdin.put(cmd_string)
+            self.process.process.stdin.put(cmd_string)
 
     def navigate(self, address):
         logging.debug('Browser navigating to %s', address)
