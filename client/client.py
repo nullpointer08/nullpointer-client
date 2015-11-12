@@ -74,26 +74,26 @@ class Client(object):
             playlist_changed = True
             try:
                 logging.debug("Downloading content: %s", content)
-                downloaded_data = self.download_content(content.content_uri)
+                self.download_and_save_content(content.content_uri, out_file_path)
                 logging.debug("downloaded_data")
             except Exception, e:
                 logging.error('Failed to download content, %s %s', content, e)
-                return False
-            try:
-                logging.debug('Downloading media to %s' % out_file_path)
-                content_file = open(out_file_path, 'w')
-                content_file.write(downloaded_data)
-            except IOError, e:
-                logging.error('Failed to save content , %s %s', content, e)
                 return False
             content.content_uri = out_file_path
 
         return playlist_changed
 
-    def download_content(self, content_uri):
+    def download_and_save_content(self, content_uri, out_file_path):
         content_uri = self.append_device_id_to_url(content_uri)
         logging.debug("download_content() %s", content_uri)
-        return urllib2.urlopen(content_uri).read()
+        response = urllib2.urlopen(content_uri)
+        with open(out_file_path, 'wb') as out_file:
+            while True:
+                chunk = response.read(1024)
+                if not chunk:
+                    break
+                out_file.write(chunk)
+
 
     def append_device_id_to_url(self, url):
         device_id_query_param = '?device_id=%s' % self.device_id

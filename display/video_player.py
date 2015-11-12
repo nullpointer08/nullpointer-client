@@ -36,8 +36,7 @@ class VideoPlayer(object):
     def shutdown(self):
         logging.debug('VideoPlayer shutdown called')
         if self.is_alive():
-            # Finds PIDs of omxplayer and passes them to the kill func
-            if(platform.linux_distribution()[0] == "Ubuntu"):
+            if platform.linux_distribution()[0] == "Ubuntu":
                 sh.pkill('vlc')
             else:
                 sh.killall('omxplayer.bin', _ok_code=[0,1])
