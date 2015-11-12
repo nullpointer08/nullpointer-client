@@ -77,9 +77,9 @@ class Browser(object):
         self.command('set', 'geometry=maximized')
         self.command('set', 'print_events=1')
         self.command('set', 'show_status=0')
-        self.command('set', 'stylesheet_uri=' + UZBL_CSS)
+        self.command('set', 'stylesheet_uri=' + Browser.UZBL_CSS)
         logging.debug('Browser started. Loading background')
-        logging.debug('Background file %s', IMG_BACKGROUND_HTML)
+        logging.debug('Background file %s', Browser.IMG_BACKGROUND_HTML)
         self.load_background()
 
     def shutdown(self):
@@ -99,7 +99,7 @@ class Browser(object):
         self.command('uri', address)
 
     def load_background(self):
-        self.navigate(IMG_BACKGROUND_HTML)
+        self.navigate(Browser.IMG_BACKGROUND_HTML)
         self.wait_for_event('LOAD_FINISH')
         self.uri_is_image_base = True
 
