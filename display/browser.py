@@ -1,8 +1,3 @@
-'''
-A control class for the browser. Supports navigation to a web page and
-displaying images.
-'''
-
 import sh
 import time
 import os
@@ -10,10 +5,15 @@ import logging
 from media import Media
 logging.getLogger("sh").setLevel(logging.WARNING)
 
+'''
+A control class for the browser. Supports navigation to a web page and
+displaying images.
+'''
+
 
 class Browser(object):
 
-    #CONSTANTS
+    # CONSTANTS
     STATIC_FILE_PATH = 'file://' + os.path.abspath(os.path.dirname(__file__))
     IMG_BG_HTML_FILE = 'image_base.html'
     IMG_BACKGROUND_HTML = os.path.join(STATIC_FILE_PATH, IMG_BG_HTML_FILE)
@@ -74,7 +74,6 @@ class Browser(object):
         self.command('set', 'geometry=maximized')
         self.command('set', 'print_events=1')
         self.command('set', 'show_status=0')
-        self.command('set', 'stylesheet_uri=' + Browser.UZBL_CSS)
         logging.debug('Browser started. Loading background')
         logging.debug('Background file %s', Browser.IMG_BACKGROUND_HTML)
         self.load_background()
@@ -114,5 +113,3 @@ class Browser(object):
             return False
         else:
             return self.process.process.exit_code is None
-
-
