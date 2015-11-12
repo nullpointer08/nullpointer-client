@@ -6,12 +6,6 @@
 <body>
     <script type="text/javascript">
     function loadImageFullScreen(uri) {
-        if(document.styleSheets.length < 1) {
-            var link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.href = "image_base.css";
-            document.getElementsByTagName("head")[0].appendChild(link);
-        }
         document.body.innerHTML = "<img id='image' src='" + uri + "' border='0' />";
     }
     </script>
