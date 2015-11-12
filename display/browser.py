@@ -12,12 +12,11 @@ logging.getLogger("sh").setLevel(logging.WARNING)
 
 
 class Browser(object):
-#CONSTANTS
+
+    #CONSTANTS
     STATIC_FILE_PATH = 'file://' + os.path.abspath(os.path.dirname(__file__))
     IMG_BG_HTML_FILE = 'image_base.html'
-    UZBL_CSS_FILE = 'uzbl.css'
     IMG_BACKGROUND_HTML = os.path.join(STATIC_FILE_PATH, IMG_BG_HTML_FILE)
-    UZBL_CSS = os.path.join(STATIC_FILE_PATH, UZBL_CSS_FILE)
 
     def __init__(self):
         logging.debug('Initializing browser')
@@ -98,13 +97,9 @@ class Browser(object):
 
     def load_background(self):
         self.navigate(Browser.IMG_BACKGROUND_HTML)
-        self.wait_for_event('LOAD_FINISH')
-        self.uri_is_image_base = True
 
     def show_image(self, img_uri):
-        if not self.uri_is_image_base:
-            self.load_background()
-
+        self.wait_for_event('LOAD_FINISH')
         logging.debug('Browser beginning to show image %s', img_uri)
         # Add a geometry change listener that rescales the image
         def load_img_command():

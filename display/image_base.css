@@ -6,17 +6,6 @@ html, body {
     border: 0px !important;
     background: #000000 !important;
 }
-
-div {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-}
-
 img{
     top: 0px;
     bottom: 0px;
@@ -28,5 +17,4 @@ img{
     border: 0px;
     margin: auto;
     overflow: auto;
-    position: fixed;
 }
