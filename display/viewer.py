@@ -24,25 +24,21 @@ class Viewer(object):
         Media.WEB_PAGE: BROWSER,
         Media.VIDEO: PLAYER
     }
-    previous_content_type = None
-    viewer = None
 
     def display_content(self, content):
-        if self.viewer is not None and content.content_type != self.previous_content_type:
-            self.viewer.hide()
         logging.debug('Viewer received content %s', content)
-        self.viewer = self.VIEWERS[content.content_type]
+        viewer = self.VIEWERS[content.content_type]
 
         displayed_time = 0
-        self.viewer.display_content(content)
+        viewer.display_content(content)
         self.running = True
 
         while self.running and displayed_time < content.view_time:
             time.sleep(self.DISPLAY_TIME_GRANULARITY)
             displayed_time += self.DISPLAY_TIME_GRANULARITY
-            self.keep_alive(self.viewer, content)
+            self.keep_alive(viewer, content)
 
-        self.previous_content_type = content.content_type
+        viewer.hide()
         logging.debug('Viewer finished displaying content %s', content)
 
     def keep_alive(self, viewer, content):
