@@ -35,19 +35,12 @@ class VideoPlayer(object):
 
     def shutdown(self):
         logging.debug('VideoPlayer shutdown called')
-
-        # The video player creates 2 processes to be killed
-        def kill(pgrep_line):
-            pid = str(pgrep_line).strip()
-            if str(pid).isdigit():
-                logging.debug('Killing VideoPlayer PID %s', str(pid))
-                sh.kill(-9, str(pid))
         if self.is_alive():
             # Finds PIDs of omxplayer and passes them to the kill func
             if(platform.linux_distribution()[0] == "Ubuntu"):
-                sh.pgrep('vlc', _out=kill)
+                sh.pkill('vlc')
             else:
-                sh.pgrep('omxplayer', _out=kill)
+                sh.killall('omxplayer.bin', _ok_code=[0,1])
 
     def is_alive(self):
         if self.process is None:
