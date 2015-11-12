@@ -1,28 +1,19 @@
 <html>
 <head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="image_base.css">
 </head>
-<style type="txt/css">
-html, body {
-    background: #000000;
-}
-img {
-    max-width: 100%;
-    max-height: 100%;
-    bottom: 0;
-    left: 0;
-    margin: auto;
-    overflow: auto;
-    position: fixed;
-    right: 0;
-    top: 0;
-}
-</style>
-
 <body>
-<script type="text/javascript">
-function loadImageFullScreen(uri) {
-    document.body.innerHTML = "<img id='image' src='" + uri + "' border='0' />";
-}
-</script>
+    <script type="text/javascript">
+    function loadImageFullScreen(uri) {
+        if(document.styleSheets.length < 1) {
+            var link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = "image_base.css";
+            document.getElementsByTagName("head")[0].appendChild(link);
+        }
+        document.body.innerHTML = "<img id='image' src='" + uri + "' border='0' />";
+    }
+    </script>
 </body>
 </html>

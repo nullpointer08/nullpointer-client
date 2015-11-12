@@ -1,0 +1,15 @@
+html, body {
+    border: 0px !important;
+    background: #000000 !important;
+}
+img{
+    max-width: 50%;
+    max-height: 50%;
+    bottom: 0;
+    left: 0;
+    margin: auto;
+    overflow: auto;
+    position: fixed;
+    right: 0;
+    top: 0;
+}
