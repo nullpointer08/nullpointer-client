@@ -10,9 +10,9 @@ import logging
 from media import Media
 logging.getLogger("sh").setLevel(logging.WARNING)
 
+IMG_BACKGROUND_HTML = 'file://' + os.path.abspath(os.path.dirname(__file__) + '/image_base.html')
 
 class Browser(object):
-
     def __init__(self):
         logging.debug('Initializing browser')
         self._event_flags = {}
@@ -27,6 +27,7 @@ class Browser(object):
         if not self.is_alive():
             self.start()
         if media.content_type == Media.WEB_PAGE:
+            self.uri_is_image_base = False
             self.navigate(media.content_uri)
         else:
             self.show_image(media.content_uri)
@@ -34,7 +35,7 @@ class Browser(object):
     # Instead of shutting down the browser, displays a blank document
     def hide(self):
         logging.debug('Hiding browser')
-        self.command('js', 'document.open();')
+        self.load_background()
 
     # Informs listeners of browser events
     def process_browser_events(self, line):
@@ -56,7 +57,7 @@ class Browser(object):
         while True:
             if event in self._event_flags and self._event_flags[event]:
                 return
-            time.sleep(0.25)
+            time.sleep(0.1)
 
     def start(self):
         logging.debug('Starting browser process')
@@ -64,10 +65,13 @@ class Browser(object):
             print_events=True,
             config='-',
             verbose='',
+            uri=IMG_BACKGROUND_HTML,
+            show_status=False,
+            geometry='maximized',
+            status_background='#000000',
             _bg=True,
             _out=self.process_browser_events
         )
-        self.command('set', 'geometry=maximized')
 
     def shutdown(self):
         logging.debug('Shutting down browser')
@@ -77,7 +81,7 @@ class Browser(object):
         if self.is_alive():
             cmd_string = command_type + " " + command + "\n"
             logging.debug('Browser handling command %s', cmd_string)
-            self.process.process.stdin.put(cmd_string)
+            return self.process.process.stdin.put(cmd_string)
 
     def navigate(self, address):
         logging.debug('Browser navigating to %s', address)
@@ -85,17 +89,21 @@ class Browser(object):
         self._event_listeners['LOAD_FINISH'] = None
         self.command('uri', address)
 
-    def show_image(self, img_uri):
-        logging.debug('Browser beginning to show image %s', img_uri)
-        img_background = os.path.dirname(__file__) + '/image_base.html'
-        img_background = os.path.abspath(img_background)
-        self.navigate('file://' + img_background)
+    def load_background(self):
+        self.navigate(IMG_BACKGROUND_HTML)
         self.wait_for_event('LOAD_FINISH')
+        self.uri_is_image_base = True
+
+    def show_image(self, img_uri):
+        if not self.uri_is_image_base:
+            self.load_background()
+
+        logging.debug('Browser beginning to show image %s', img_uri)
         # Add a geometry change listener that rescales the image
         def load_img_command():
             self.command('js', 'loadImageFullScreen("' + img_uri + '")')
             
-        self._event_listeners['GEOMETRY_CHANGED'] = load_img_command
+        #self._event_listeners['GEOMETRY_CHANGED'] = load_img_command
 
         load_img_command()  # Loads the fullscreen image with JavaScript
 
