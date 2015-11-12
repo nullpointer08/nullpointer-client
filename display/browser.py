@@ -10,7 +10,7 @@ import logging
 from media import Media
 logging.getLogger("sh").setLevel(logging.WARNING)
 
-IMG_BACKGROUND_HTML = 'file://' + os.path.abspath(os.path.dirname(__file__) + '/image_base.html')
+IMG_BACKGROUND_HTML = 'file://'.join(os.path.abspath(os.path.dirname(__file__).join('/image_base.html')))
 
 class Browser(object):
     def __init__(self):
@@ -62,16 +62,14 @@ class Browser(object):
     def start(self):
         logging.debug('Starting browser process')
         self.process = sh.uzbl(
-            print_events=True,
-            config='-',
-            verbose='',
-            uri=IMG_BACKGROUND_HTML,
-            show_status=False,
             geometry='maximized',
-            status_background='#000000',
+            verbose=0,
+            uri=IMG_BACKGROUND_HTML,
             _bg=True,
             _out=self.process_browser_events
         )
+        self.command('set', 'print_events=1')
+        self.command('set', 'show_status=0')
 
     def shutdown(self):
         logging.debug('Shutting down browser')
