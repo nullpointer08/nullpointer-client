@@ -21,6 +21,13 @@ class Client(object):
         self.config = ConfigParser.ConfigParser()
         self.config.readfp(open(config_path))
         self.MEDIA_FOLDER = self.config.get('Storage', 'media_folder')
+        if not os.path.exists(self.MEDIA_FOLDER):
+            os.makedirs(self.MEDIA_FOLDER)
+        playlist_folder = self.config.get('Storage', 'playlist_folder')
+        if not os.path.exists(playlist_folder):
+            os.makedirs(playlist_folder)
+        playlist_filename = self.config.get('Storage', 'playlist_filename')
+        self.PLAYLIST_FILEPATH = playlist_folder + '/' + playlist_filename
         self.scheduler = None
         self.playlist = None
         # Get the device id and format the playlist url to use it
@@ -35,12 +42,19 @@ class Client(object):
     def fetch_playlist(self):
         url = self.config.get('Server', 'playlist_url')
         logging.debug('Fetching playlist from url %s', url)
+        download_success = True
         try:
-            response = urllib2.urlopen(url).read()
+            pl_data = urllib2.urlopen(url).read()
         except Exception, e:
-            logging.error('Could not fetch playlist %s', e)
-            return
-        playlist_dl = json.loads(response)
+            logging.error('Could not fetch playlist %s, using stored playlist', e)
+            download_success = False
+            if os.path.isfile(self.PLAYLIST_FILEPATH):
+                pl_data = open(self.PLAYLIST_FILEPATH).read()
+        if download_success:
+            pl_file = open(self.PLAYLIST_FILEPATH, 'w')
+            pl_file.write(pl_data)
+            pl_file.close()
+        playlist_dl = json.loads(pl_data)
         logging.debug('Playlist fetched %s', playlist_dl)
         media_schedule = literal_eval(playlist_dl[Client.SCHEDULE_NAME_STRING])
         media_schedule = self.generate_viewer_playlist(media_schedule)
@@ -94,7 +108,6 @@ class Client(object):
                     break
                 out_file.write(chunk)
 
-
     def append_device_id_to_url(self, url):
         device_id_query_param = '?device_id=%s' % self.device_id
         return url + device_id_query_param
@@ -123,11 +136,11 @@ class Client(object):
             self.scheduler.start()
 
     def poll_playlist(self):
+        poll_time = float(self.config.get('Client', 'playlist_poll_time'))
         try:
             while True:
                 self.fetch_playlist()
                 self.schedule_playlist()
-                poll_time = float(self.config.get('Client', 'playlist_poll_time'))
                 time.sleep(poll_time)
         except KeyboardInterrupt:
             if self.scheduler:
