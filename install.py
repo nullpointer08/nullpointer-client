@@ -13,7 +13,6 @@ import configure
 from optparse import OptionParser
 
 APT_REQS = (
-    'python',
     'python-pip',
     'matchbox-window-manager',
     'uzbl',
@@ -72,11 +71,13 @@ def install_reqs(reqs, is_installed_func, install_func):
         pkg_count += 1
         print '%s/%s) %s: %s' % (pkg_count, len(reqs), req, status)
 
+
 def install():
     print 'Installing APT packages...'
     install_reqs(APT_REQS, is_apt_pkg_installed, install_apt_req)
     print '\nInstalling python packages...'
     install_reqs(PIP_REQS, is_pip_req_installed, install_pip_req)
+
 
 if __name__ == '__main__':
     parser = OptionParser()
