@@ -18,8 +18,9 @@ To check if it is running
 
 $ curl localhost:8080/playlist.json
 '''
-
+import os
 from client.client import Client
 
-client = Client('./client/client.properties')
+directory = os.path.dirname(os.path.realpath(__file__))
+client = Client(directory + '/client/client.properties')
 client.poll_playlist()

@@ -2,9 +2,12 @@
 Command line utility which installs all the requirements (APT and pip)
 Use the -c (or --configure) switch to also configure after installation
 of requirements.
+
+Requires superuser priviledges
 '''
 
 import os
+import stat
 import subprocess
 import sys
 import pip
@@ -72,11 +75,27 @@ def install_reqs(reqs, is_installed_func, install_func):
         print '%s/%s) %s: %s' % (pkg_count, len(reqs), req, status)
 
 
+def add_to_startup():
+    user = 'pi' # Should this be configurable?
+    start_path = os.path.dirname(os.path.realpath(__file__)) + '/start.sh'
+    cron_line = '@reboot %s xinit %s &' % (user, start_path)
+    cron_file = open('/etc/crontab', 'r')
+    cron_content = cron_file.read()
+    cron_file.close()
+    if cron_line in cron_content:
+        return
+    cron_file = open('/etc/crontab', 'a')
+    cron_file.write(cron_line)
+    cron_file.close()
+
+
 def install():
     print 'Installing APT packages...'
     install_reqs(APT_REQS, is_apt_pkg_installed, install_apt_req)
     print '\nInstalling python packages...'
     install_reqs(PIP_REQS, is_pip_req_installed, install_pip_req)
+    print '\nAdding client to startup programs'
+    add_to_startup()
 
 
 if __name__ == '__main__':
