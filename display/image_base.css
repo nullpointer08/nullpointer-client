@@ -1,0 +1,20 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    border: 0px !important;
+    background: #000000 !important;
+}
+img{
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    position: fixed;
+    max-width: 100%;
+    max-height: 100%;
+    border: 0px;
+    margin: auto;
+    overflow: auto;
+}

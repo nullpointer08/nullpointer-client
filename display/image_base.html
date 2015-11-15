@@ -1,20 +1,13 @@
 <html>
 <head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="image_base.css">
 </head>
-
-<script type="text/javascript">
-	
-	function loadImageFullScreen(uri) {
-		var width = window.innerWidth;
-		var height = window.innerHeight;
-
-		document.body.innerHTML = "";
-
-		var imageSource = "<img id='image' src='" + uri + "' height=" + height + " width=" + width + " border='0' /img>";
-		document.write(imageSource);
-	}
-</script>
-
-<body bgcolor="#000000">
+<body>
+    <script type="text/javascript">
+    function loadImageFullScreen(uri) {
+        document.body.innerHTML = "<img id='image' src='" + uri + "' border='0' />";
+    }
+    </script>
 </body>
 </html>
