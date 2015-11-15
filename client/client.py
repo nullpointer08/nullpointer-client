@@ -23,9 +23,11 @@ class Client(object):
         self.MEDIA_FOLDER = self.config.get('Storage', 'media_folder')
         if not os.path.exists(self.MEDIA_FOLDER):
             os.makedirs(self.MEDIA_FOLDER)
-        self.PLAYLIST_FILEPATH = self.config.get('Storage', 'playlist_filepath')
-        if not os.path.exists(self.PLAYLIST_FILEPATH):
-            os.makedirs(self.PLAYLIST_FILEPATH)
+        playlist_folder = self.config.get('Storage', 'playlist_folder')
+        if not os.path.exists(playlist_folder):
+            os.makedirs(playlist_folder)
+        playlist_filename = self.config.get('Storage', 'playlist_filename')
+        self.PLAYLIST_FILEPATH = playlist_folder + '/' + playlist_filename
         self.scheduler = None
         self.playlist = None
         # Get the device id and format the playlist url to use it
