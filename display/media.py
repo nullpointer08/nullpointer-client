@@ -24,3 +24,6 @@ class Media(object):
             ',ContentUri=' + self.content_uri +
             ',ViewTime=' + str(self.view_time)
         )
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self.content_type == other.content_type and self.content_uri == other.content_uri and self.view_time == other.view_time
