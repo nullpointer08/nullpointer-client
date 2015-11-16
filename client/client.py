@@ -28,7 +28,7 @@ class Client(object):
         if not os.path.exists(playlist_file):
             os.makedirs(os.path.dirname(playlist_file))
         self.PLAYLIST_FILEPATH = playlist_file
-        log_file = self.config.get('Logging', 'client_log_filename');
+        log_file = self.config.get('Logging', 'client_log_file');
         logging.basicConfig(filename=log_file, filemode='w', level=logging.DEBUG)
 
         self.scheduler = None
