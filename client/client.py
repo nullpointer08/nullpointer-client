@@ -21,6 +21,8 @@ class Client(object):
         self.config = ConfigParser.ConfigParser()
         self.config.readfp(open(config_path))
         self.MEDIA_FOLDER = self.config.get('Storage', 'media_folder')
+        if self.MEDIA_FOLDER[len(self.MEDIA_FOLDER)-1] != '/':
+            self.MEDIA_FOLDER += '/'
         if not os.path.exists(self.MEDIA_FOLDER):
             os.makedirs(self.MEDIA_FOLDER)
         playlist_folder = self.config.get('Storage', 'playlist_folder')
@@ -50,6 +52,10 @@ class Client(object):
             download_success = False
             if os.path.isfile(self.PLAYLIST_FILEPATH):
                 pl_data = open(self.PLAYLIST_FILEPATH).read()
+            else:
+                logging.debug('No stored playlist, setting empty playlist')
+                self.playlist = []
+                return
         if download_success:
             pl_file = open(self.PLAYLIST_FILEPATH, 'w')
             pl_file.write(pl_data)

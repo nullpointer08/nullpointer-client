@@ -78,7 +78,7 @@ def install_reqs(reqs, is_installed_func, install_func):
 def add_to_startup():
     user = 'pi' # Should this be configurable?
     start_path = os.path.dirname(os.path.realpath(__file__)) + '/start.sh'
-    cron_line = '@reboot %s xinit %s &' % (user, start_path)
+    cron_line = '@reboot %s xinit %s &\n' % (user, start_path)
     cron_file = open('/etc/crontab', 'r')
     cron_content = cron_file.read()
     cron_file.close()
