@@ -1,26 +1,35 @@
 '''
-Demonstration for a client which downloads a playlist,
-downloads files from the playlist and begins to view them according
-to the playlist schedule.
-
-Configure the client/client.properties file before starting.
-
-For a very simple playlist server navigate to the folder:
-
-$ cd client/dev_test_server/
-$ python dev_test_server.py
-
-Note: it matters what folder the server is started in
-The server will start serving files in the folder, e.g.
-the playlist.json file.
-
-To check if it is running
-
-$ curl localhost:8080/playlist.json
+A command line utility for starting the client.
+Use the -f or --fullscreen switch to start in fullscreen borderless mode
+using xinit (X cannot be on)
 '''
+
+from optparse import OptionParser
+import subprocess
 import os
 from client.client import Client
 
-directory = os.path.dirname(os.path.realpath(__file__))
-client = Client(directory + '/client/client.properties')
-client.poll_playlist()
+START_PATH = os.path.dirname(os.path.realpath(__file__))
+START_SHELL_SCRIPT_NAME = 'start.sh'
+
+def run(fullscreen):
+    if fullscreen:
+        start_sh_path = START_PATH + '/' + START_SHELL_SCRIPT_NAME
+        subprocess.Popen(['xinit', start_sh_path, '&'])
+    else:
+        client = Client(START_PATH + '/client/client.properties')
+        client.poll_playlist()
+
+if __name__ == '__main__':
+    print 'Starting main'
+    parser = OptionParser()
+    parser.add_option(
+        '-f',
+        '--fullscreen',
+        action='store_true',
+        dest='fullscreen',
+        default=False,
+        help='Starts the client in full screen borderless mode.'
+    )
+    (options, args) = parser.parse_args()
+    run(options.fullscreen)

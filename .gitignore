@@ -2,3 +2,4 @@
 *.log
 *.sqlite3
 .ropeproject/
+start.sh

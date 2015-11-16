@@ -27,7 +27,9 @@ PIP_REQS = (
 )
 
 DEVNULL = open(os.devnull, 'wb')
-
+START_PATH = os.path.dirname(os.path.realpath(__file__))
+START_SHELL_SCRIPT_NAME = 'start.sh'
+START_PYTHON_SCRIPT_NAME = 'start_client.py'
 
 def install_apt_req(apt_req):
     retval = subprocess.call(
@@ -77,8 +79,8 @@ def install_reqs(reqs, is_installed_func, install_func):
 
 def add_to_startup():
     user = 'pi' # Should this be configurable?
-    start_path = os.path.dirname(os.path.realpath(__file__)) + '/start.sh'
-    cron_line = '@reboot %s xinit %s &\n' % (user, start_path)
+    start_line = START_PATH + '/' + START_PYTHON_SCRIPT_NAME + ' -f'
+    cron_line = '@reboot %s python %s &\n' % (user, start_line)
     cron_file = open('/etc/crontab', 'r')
     cron_content = cron_file.read()
     cron_file.close()
@@ -89,11 +91,22 @@ def add_to_startup():
     cron_file.close()
 
 
+def create_startup_shell_script():
+    start_path = os.path.dirname(os.path.realpath(__file__))
+    startup_script = open(START_PATH + '/' + START_SHELL_SCRIPT_NAME, 'w')
+    startup_script.write('#!/bin/bash\n')
+    startup_script.write('python %s/%s & matchbox-window-manager -use_titlebar no -use_cursor no\n' % (START_PATH, START_PYTHON_SCRIPT_NAME))
+    startup_script.close()
+    print 'Wrote startup script to %s' % start_path
+
+
 def install():
     print 'Installing APT packages...'
     install_reqs(APT_REQS, is_apt_pkg_installed, install_apt_req)
     print '\nInstalling python packages...'
     install_reqs(PIP_REQS, is_pip_req_installed, install_pip_req)
+    print '\nCreating startup shell script'
+    create_startup_shell_script()
     print '\nAdding client to startup programs'
     add_to_startup()
 
