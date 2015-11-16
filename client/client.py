@@ -1,5 +1,5 @@
 import logging
-logging.basicConfig(filename='/home/pi/work/nullpointer/demo_client.log', filemode='w', level=logging.DEBUG)
+logging.basicConfig(filename='/home/pi/work/nullpointer/client.log', filemode='w', level=logging.DEBUG)
 import ConfigParser
 import urllib2
 import json
