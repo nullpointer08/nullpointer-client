@@ -85,7 +85,7 @@ class Client(object):
     def download_playlist_files(self, playlist):
         playlist_changed = False
         for content in playlist:
-            out_file_path = self.generate_content_filepath(content.content_uri)
+            out_file_path = self.generate_content_filepath(content.content_uri, content.content_type)
             logging.debug(out_file_path)
             if os.path.isfile(out_file_path):
                 logging.debug("Found file %s", out_file_path)
@@ -118,11 +118,17 @@ class Client(object):
         device_id_query_param = '?device_id=%s' % self.device_id
         return url + device_id_query_param
 
-    def generate_content_filepath(self, content_uri):
-        uri_split = content_uri.split('.')
-        file_extension = uri_split[len(uri_split) - 1]
-        file_name = str(hash(content_uri))
-        return self.MEDIA_FOLDER + file_name + '.' + file_extension
+
+    def generate_filename(self, content_uri, content_type):
+        uri_split = content_uri.split('/')
+        if len(uri_split) == 0:
+            return str(hash(content_uri)) + '.' + content_type
+        else:
+            return uri_split[len(uri_split)-1]
+
+    def generate_content_filepath(self, content_uri, content_type):
+        file_name = self.generate_filename(content_uri, content_type)
+        return self.MEDIA_FOLDER + file_name
 
     def schedule_playlist(self):
         if self.playlist is None or len(self.playlist) == 0:
