@@ -1,5 +1,4 @@
 import logging
-logging.basicConfig(filename='/home/pi/work/nullpointer/client.log', filemode='w', level=logging.DEBUG)
 import ConfigParser
 import urllib2
 import json
@@ -25,11 +24,13 @@ class Client(object):
             self.MEDIA_FOLDER += '/'
         if not os.path.exists(self.MEDIA_FOLDER):
             os.makedirs(self.MEDIA_FOLDER)
-        playlist_folder = self.config.get('Storage', 'playlist_folder')
-        if not os.path.exists(playlist_folder):
-            os.makedirs(playlist_folder)
-        playlist_filename = self.config.get('Storage', 'playlist_filename')
-        self.PLAYLIST_FILEPATH = playlist_folder + '/' + playlist_filename
+        playlist_file = self.config.get('Storage', 'playlist_file')
+        if not os.path.exists(playlist_file):
+            os.makedirs(os.path.dirname(playlist_file))
+        self.PLAYLIST_FILEPATH = playlist_file
+        log_file = self.config.get('Logging', 'client_log_filename');
+        logging.basicConfig(filename=log_file, filemode='w', level=logging.DEBUG)
+
         self.scheduler = None
         self.playlist = None
         # Get the device id and format the playlist url to use it
