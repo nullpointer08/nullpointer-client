@@ -15,6 +15,54 @@ Use the -f or --fullscreen switch to start in fullscreen borderless mode
 using xinit (X cannot be on)
 '''
 
+LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'client_debug': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'DEBUG',
+            'formatter': 'simple',
+            'filename': os.path.join(START_PATH, 'client_debug.log'),
+            'maxBytes': 1024*1024,
+            'backupCount': 2,
+            'encoding': 'utf8'
+        },
+        'errors': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'ERROR',
+            'formatter': 'simple',
+            'filename': os.path.join(START_PATH, 'error.log'),
+            'maxBytes': 1024*1024*100,
+            'backupCount': 2,
+            'encoding': 'utf8'
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['errors'],
+            'level': 'ERROR',
+        },
+        'client': {
+            'handlers': ['client_debug'],
+            'level': 'DEBUG',
+        },
+        'display': {
+            'handlers': ['client_debug'],
+            'level': 'DEBUG',
+        },
+
+    },
+}
 
 def run(fullscreen):
     if fullscreen:
@@ -24,9 +72,7 @@ def run(fullscreen):
         config = ConfigParser.ConfigParser()
         with open(CONFIG_PATH) as config_fp:
             config.readfp(config_fp)
-        log_file = config.get('Logging', 'client_log_file')
-        logging.basicConfig(level=logging.DEBUG, filemode='w+',
-                            filename=log_file)
+        logging.dictConfig(LOGGING_CONFIG)
         client = Client(config)
         client.poll_playlist()
 

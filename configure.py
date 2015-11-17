@@ -46,13 +46,6 @@ CONFIG_ITEMS = (
         'default': 'http://drajala.ddns.net:8000/api/device/{device_id}/playlist',
         'is_path': False
     },
-    {
-        'section': 'Logging',
-        'item': 'client_log_file',
-        'description': 'Enter the absolute filepath to the log file',
-        'default': 'client.log',
-        'is_path': True
-    }
 )
 
 def complete(text, state):
