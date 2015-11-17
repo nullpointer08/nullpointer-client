@@ -25,8 +25,9 @@ class Client(object):
         if not os.path.exists(self.MEDIA_FOLDER):
             os.makedirs(self.MEDIA_FOLDER)
         playlist_file = self.config.get('Storage', 'playlist_file')
-        if not os.path.exists(playlist_file):
-            os.makedirs(os.path.dirname(playlist_file))
+        playlist_folder = os.path.dirname(playlist_file);
+        if not os.path.exists(playlist_folder):
+            os.makedirs(playlist_folder)
         self.PLAYLIST_FILEPATH = playlist_file
         log_file = self.config.get('Logging', 'client_log_file');
         logging.basicConfig(filename=log_file, filemode='w', level=logging.DEBUG)
@@ -58,7 +59,7 @@ class Client(object):
                 self.playlist = []
                 return
         if download_success:
-            pl_file = open(self.PLAYLIST_FILEPATH, 'w')
+            pl_file = open(self.PLAYLIST_FILEPATH, 'w+')
             pl_file.write(pl_data)
             pl_file.close()
         playlist_dl = json.loads(pl_data)
