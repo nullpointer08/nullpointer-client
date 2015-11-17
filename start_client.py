@@ -35,7 +35,6 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
             'formatter': 'simple',
             'filename': os.path.join(START_PATH, 'client_debug.log'),
-            'filemode': 'w+', # + = reset each time the program starts
             'maxBytes': 1024*1024, #1MB
             'backupCount': 2,
             'encoding': 'utf8'
@@ -45,7 +44,6 @@ LOGGING_CONFIG = {
             'level': 'ERROR',
             'formatter': 'simple',
             'filename': os.path.join(START_PATH, 'error.log'),
-            'filemode': 'w',
             'maxBytes': 1024*1024*10, #10MB
             'backupCount': 2,
             'encoding': 'utf8'
