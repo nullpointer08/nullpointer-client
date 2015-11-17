@@ -1,9 +1,8 @@
-from start_client import logger
 import time
 from media import Media
 from browser import Browser
 from video_player import VideoPlayer
-
+import logging
 '''
 A high-level class for viewing any supported media type.
 Delegates viewing to the browser or video player depending on media
@@ -26,7 +25,8 @@ class Viewer(object):
     }
 
     def display_content(self, content):
-        logger.debug('Viewer received content %s', content)
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Viewer received content %s', content)
         viewer = self.VIEWERS[content.content_type]
 
         displayed_time = 0
@@ -39,16 +39,16 @@ class Viewer(object):
             self.keep_alive(viewer, content)
 
         viewer.hide()
-        logger.debug('Viewer finished displaying content %s', content)
+        self.logger.debug('Viewer finished displaying content %s', content)
 
     def keep_alive(self, viewer, content):
         if not viewer.is_alive():
-            logger.debug('Resurrecting viewer for content %s', content)
+            self.logger.debug('Resurrecting viewer for content %s', content)
             viewer.display_content(content)
 
     def shutdown(self):
-        logger.debug('Viewer shutdown requested')
+        self.logger.debug('Viewer shutdown requested')
         self.running = False
         self.BROWSER.shutdown()
         self.PLAYER.shutdown()
-        logger.debug('Viewer shutdown complete')
+        self.logger.debug('Viewer shutdown complete')

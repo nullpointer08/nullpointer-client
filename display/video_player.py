@@ -1,7 +1,7 @@
-from start_client import logger
 import sh
 import platform
 from media import Media
+import logging
 
 '''
 A control class for the video player.
@@ -11,12 +11,14 @@ A control class for the video player.
 class VideoPlayer(object):
 
     def __init__(self):
-        logger.debug('Initializing VideoPlayer')
+
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Initializing VideoPlayer')
         self.process = None
 
     def display_content(self, content):
         assert content.content_type == Media.VIDEO
-        logger.debug('VideoPlayer receiving content %s', content)
+        self.logger.debug('VideoPlayer receiving content %s', content)
         uri = content.content_uri
         if(platform.linux_distribution()[0] == "Ubuntu"):
             self.process = sh.vlc(
@@ -30,11 +32,11 @@ class VideoPlayer(object):
 
     # Cannot really hide player, must shut down
     def hide(self):
-        logger.debug('VideoPlayer hide called')
+        self.logger.debug('VideoPlayer hide called')
         self.shutdown()
 
     def shutdown(self):
-        logger.debug('VideoPlayer shutdown called')
+        self.logger.debug('VideoPlayer shutdown called')
         if self.is_alive():
             if platform.linux_distribution()[0] == "Ubuntu":
                 sh.pkill('vlc')

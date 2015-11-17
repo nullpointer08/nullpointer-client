@@ -6,7 +6,7 @@ import time
 import os
 from display.media import Media
 from display.scheduler import Scheduler
-from start_client import logger
+import logging
 
 class Client(object):
 
@@ -17,7 +17,7 @@ class Client(object):
 
     def __init__(self, config):
         self.config = config
-
+        self.logger = logging.getLogger(__name__)
         self.MEDIA_FOLDER = self.config.get('Storage', 'media_folder')
         if self.MEDIA_FOLDER[len(self.MEDIA_FOLDER)-1] != '/':
             self.MEDIA_FOLDER += '/'
@@ -39,21 +39,21 @@ class Client(object):
         incomplete_url = self.config.get('Server', 'playlist_url')
         playlist_url = incomplete_url.format(**{'device_id': self.device_id})
         self.config.set('Server', 'playlist_url', playlist_url)
-        logger.debug('Initiating client with config: %s', config)
+        self.logger.debug('Initiating client with config: %s', config)
 
     def fetch_playlist(self):
         url = self.config.get('Server', 'playlist_url')
-        logger.debug('Fetching playlist from url %s', url)
+        self.logger.debug('Fetching playlist from url %s', url)
         download_success = True
         try:
             pl_data = urllib2.urlopen(url).read()
         except Exception, e:
-            logger.error('Could not fetch playlist %s, using stored playlist', e)
+            self.logger.error('Could not fetch playlist %s, using stored playlist', e)
             download_success = False
             if os.path.isfile(self.PLAYLIST_FILEPATH):
                 pl_data = open(self.PLAYLIST_FILEPATH).read()
             else:
-                logger.debug('No stored playlist, setting empty playlist')
+                self.logger.debug('No stored playlist, setting empty playlist')
                 self.playlist = []
                 return
         if download_success:
@@ -61,19 +61,19 @@ class Client(object):
             pl_file.write(pl_data)
             pl_file.close()
         playlist_dl = json.loads(pl_data)
-        logger.debug('Playlist fetched %s', playlist_dl)
+        self.logger.debug('Playlist fetched %s', playlist_dl)
         media_schedule = literal_eval(playlist_dl[Client.SCHEDULE_NAME_STRING])
         media_schedule = self.generate_viewer_playlist(media_schedule)
-        logger.debug('Media schedule %s', media_schedule)
+        self.logger.debug('Media schedule %s', media_schedule)
         # if this after playlist saved on disk
         self.download_playlist_files(media_schedule)
         self.playlist = media_schedule
-        logger.debug('Using playlist %s', self.playlist)
+        self.logger.debug('Using playlist %s', self.playlist)
 
     def generate_viewer_playlist(self, playlist):
         viewer_pl = []
         for content in playlist:
-            logger.debug("Generating playlist for content: %s", content)
+            self.logger.debug("Generating playlist for content: %s", content)
             content_type = content[Client.SCHEDULE_TYPE_STRING]
             content_uri = content[Client.SCHEDULE_URI_STRING]
             view_time = int(content[Client.SCHEDULE_TIME_STRING])
@@ -86,18 +86,18 @@ class Client(object):
         playlist_changed = False
         for content in playlist:
             out_file_path = self.generate_content_filepath(content.content_uri)
-            logger.debug(out_file_path)
+            self.logger.debug(out_file_path)
             if os.path.isfile(out_file_path):
-                logger.debug("Found file %s", out_file_path)
+                self.logger.debug("Found file %s", out_file_path)
                 content.content_uri = out_file_path
                 continue
             playlist_changed = True
             try:
-                logger.debug("Downloading content: %s", content)
+                self.logger.debug("Downloading content: %s", content)
                 self.download_and_save_content(content.content_uri, out_file_path)
-                logger.debug("downloaded_data")
+                self.logger.debug("downloaded_data")
             except Exception, e:
-                logger.error('Failed to download content, %s %s', content, e)
+                self.logger.error('Failed to download content, %s %s', content, e)
                 return False
             content.content_uri = out_file_path
 
@@ -105,7 +105,7 @@ class Client(object):
 
     def download_and_save_content(self, content_uri, out_file_path):
         content_uri = self.append_device_id_to_url(content_uri)
-        logger.debug("download_content() %s", content_uri)
+        self.logger.debug("download_content() %s", content_uri)
         response = urllib2.urlopen(content_uri)
         with open(out_file_path, 'wb') as out_file:
             while True:
@@ -126,7 +126,7 @@ class Client(object):
 
     def schedule_playlist(self):
         if self.playlist is None or len(self.playlist) == 0:
-            logger.debug('No playlist to schedule')
+            self.logger.debug('No playlist to schedule')
             return
 
         if self.scheduler is None:

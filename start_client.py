@@ -8,7 +8,6 @@ from client.client import Client
 START_PATH = os.path.dirname(os.path.realpath(__file__))
 START_SHELL_SCRIPT_NAME = 'start.sh'
 CONFIG_PATH = os.path.join(START_PATH, 'client/client.properties')
-LOG_FILE_NAME = 'client.log'
 
 '''
 A command line utility for starting the client.
@@ -18,7 +17,6 @@ using xinit (X cannot be on)
 
 
 def run(fullscreen):
-
     if fullscreen:
         start_sh_path = START_PATH + '/' + START_SHELL_SCRIPT_NAME
         subprocess.Popen(['xinit', start_sh_path, '&'])
@@ -26,14 +24,14 @@ def run(fullscreen):
         config = ConfigParser.ConfigParser()
         with open(CONFIG_PATH) as config_fp:
             config.readfp(config_fp)
+        log_file = config.get('Logging', 'client_log_file')
+        logging.basicConfig(level=logging.DEBUG, filemode='w+',
+                            filename=log_file)
         client = Client(config)
         client.poll_playlist()
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, filemode='w+',
-                    filename=os.path.join(START_PATH + LOG_FILE_NAME))
-    logger = logging.getLogger(__name__)
     print 'Starting main'
 
     parser = OptionParser()
