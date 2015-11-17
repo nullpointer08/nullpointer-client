@@ -28,7 +28,8 @@ LOGGING_CONFIG = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'simple'
+            'formatter': 'simple',
+            'level': 'ERROR',
         },
         'client_debug': {
             'class': 'logging.handlers.RotatingFileHandler',
