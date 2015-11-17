@@ -1,9 +1,8 @@
+from start_client import logger
 import time
 import os
 import sh
-import logging
 from media import Media
-logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 '''
 A control class for the browser. Supports navigation to a web page and
@@ -19,7 +18,7 @@ class Browser(object):
     IMG_BACKGROUND_HTML = os.path.join(STATIC_FILE_PATH, IMG_BG_HTML_FILE)
 
     def __init__(self):
-        logging.debug('Initializing browser')
+        logger.debug('Initializing browser')
         self.uri_is_image_base = False
         self._event_flags = {}
         self._event_listeners = {}
@@ -27,7 +26,7 @@ class Browser(object):
 
     def display_content(self, media):
         assert media.content_type in (Media.WEB_PAGE, Media.IMAGE)
-        logging.debug('Browser received content %s', media)
+        logger.debug('Browser received content %s', media)
         if not self.is_alive():
             self.start()
         if media.content_type == Media.WEB_PAGE:
@@ -38,7 +37,7 @@ class Browser(object):
 
     # Instead of shutting down the browser, displays a blank document
     def hide(self):
-        logging.debug('Hiding browser')
+        logger.debug('Hiding browser')
         self.load_background()
 
     # Informs listeners of browser events
@@ -46,25 +45,25 @@ class Browser(object):
         event = str(line)
         for key in self._event_flags:
             if key in event:
-                logging.debug('Setting event flag %s', key)
+                logger.debug('Setting event flag %s', key)
                 self._event_flags[key] = True
         for key in self._event_listeners:
             if key in event:
                 listener = self._event_listeners[key]
                 if listener is not None:
-                    logging.debug('Sending listeners of event %s', key)
+                    logger.debug('Sending listeners of event %s', key)
                     listener()
 
     # Sleeps until a flag is set, used e.g. to wait for a page to load
     def wait_for_event(self, event):
-        logging.debug('Browser waiting for event %s', event)
+        logger.debug('Browser waiting for event %s', event)
         while True:
             if event in self._event_flags and self._event_flags[event]:
                 return
             time.sleep(0.1)
 
     def start(self):
-        logging.debug('Starting browser process')
+        logger.debug('Starting browser process')
         self.process = sh.uzbl(
             config='-',
             _bg=True,
@@ -74,22 +73,22 @@ class Browser(object):
         self.command('set', 'geometry=maximized')
         self.command('set', 'print_events=1')
         self.command('set', 'show_status=0')
-        logging.debug('Browser started. Loading background')
-        logging.debug('Background file %s', Browser.IMG_BACKGROUND_HTML)
+        logger.debug('Browser started. Loading background')
+        logger.debug('Background file %s', Browser.IMG_BACKGROUND_HTML)
         self.load_background()
 
     def shutdown(self):
-        logging.debug('Shutting down browser')
+        logger.debug('Shutting down browser')
         self.process.process.kill()
 
     def command(self, command_type, command=""):
         if self.is_alive():
             cmd_string = command_type + " " + command + "\n"
-            logging.debug('Browser handling command %s', cmd_string)
+            logger.debug('Browser handling command %s', cmd_string)
             self.process.process.stdin.put(cmd_string)
 
     def navigate(self, address):
-        logging.debug('Browser navigating to %s', address)
+        logger.debug('Browser navigating to %s', address)
         self._event_flags['LOAD_FINISH'] = False
         self._event_listeners['LOAD_FINISH'] = None
         self.command('uri', address)
@@ -99,7 +98,7 @@ class Browser(object):
 
     def show_image(self, img_uri):
         self.wait_for_event('LOAD_FINISH')
-        logging.debug('Browser beginning to show image %s', img_uri)
+        logger.debug('Browser beginning to show image %s', img_uri)
         # Add a geometry change listener that rescales the image
         def load_img_command():
             self.command('js', 'loadImageFullScreen("' + img_uri + '")')
