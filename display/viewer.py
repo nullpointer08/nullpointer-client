@@ -1,3 +1,8 @@
+import time
+from media import Media
+from browser import Browser
+from video_player import VideoPlayer
+import logging
 '''
 A high-level class for viewing any supported media type.
 Delegates viewing to the browser or video player depending on media
@@ -5,12 +10,6 @@ type. The displaying is performed in a separate thread, so shutdown()
 must be called before killing the program to avoid errors upon
 program termination.
 '''
-
-import time
-import logging
-from media import Media
-from browser import Browser
-from video_player import VideoPlayer
 
 
 class Viewer(object):
@@ -26,7 +25,8 @@ class Viewer(object):
     }
 
     def display_content(self, content):
-        logging.debug('Viewer received content %s', content)
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Viewer received content %s', content)
         viewer = self.VIEWERS[content.content_type]
 
         displayed_time = 0
@@ -39,16 +39,16 @@ class Viewer(object):
             self.keep_alive(viewer, content)
 
         viewer.hide()
-        logging.debug('Viewer finished displaying content %s', content)
+        self.logger.debug('Viewer finished displaying content %s', content)
 
     def keep_alive(self, viewer, content):
         if not viewer.is_alive():
-            logging.debug('Resurrecting viewer for content %s', content)
+            self.logger.debug('Resurrecting viewer for content %s', content)
             viewer.display_content(content)
 
     def shutdown(self):
-        logging.debug('Viewer shutdown requested')
+        self.logger.debug('Viewer shutdown requested')
         self.running = False
         self.BROWSER.shutdown()
         self.PLAYER.shutdown()
-        logging.debug('Viewer shutdown complete')
+        self.logger.debug('Viewer shutdown complete')
