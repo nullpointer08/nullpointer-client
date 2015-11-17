@@ -1,4 +1,5 @@
 import logging
+logger = logging.getLogger(__name__)
 import ConfigParser
 import urllib2
 import json
@@ -16,21 +17,21 @@ class Client(object):
     SCHEDULE_TYPE_STRING = 'type'
     SCHEDULE_URI_STRING = 'uri'
 
-    def __init__(self, config_path):
-        self.config = ConfigParser.ConfigParser()
-        self.config.readfp(open(config_path))
+    def __init__(self, config):
+
+        self.config = config
+
         self.MEDIA_FOLDER = self.config.get('Storage', 'media_folder')
         if self.MEDIA_FOLDER[len(self.MEDIA_FOLDER)-1] != '/':
             self.MEDIA_FOLDER += '/'
         if not os.path.exists(self.MEDIA_FOLDER):
             os.makedirs(self.MEDIA_FOLDER)
+
         playlist_file = self.config.get('Storage', 'playlist_file')
         playlist_folder = os.path.dirname(playlist_file);
         if not os.path.exists(playlist_folder):
             os.makedirs(playlist_folder)
         self.PLAYLIST_FILEPATH = playlist_file
-        log_file = self.config.get('Logging', 'client_log_file');
-        logging.basicConfig(filename=log_file, filemode='w', level=logging.DEBUG)
 
         self.scheduler = None
         self.playlist = None
@@ -41,7 +42,7 @@ class Client(object):
         incomplete_url = self.config.get('Server', 'playlist_url')
         playlist_url = incomplete_url.format(**{'device_id': self.device_id})
         self.config.set('Server', 'playlist_url', playlist_url)
-        logging.debug('Initiating client with config: %s', config_path)
+        logging.debug('Initiating client with config: %s', config)
 
     def fetch_playlist(self):
         url = self.config.get('Server', 'playlist_url')

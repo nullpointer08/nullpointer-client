@@ -1,9 +1,9 @@
-import sh
 import time
 import os
+import sh
 import logging
 from media import Media
-logging.getLogger("sh").setLevel(logging.WARNING)
+logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 '''
 A control class for the browser. Supports navigation to a web page and
