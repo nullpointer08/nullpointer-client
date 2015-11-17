@@ -78,8 +78,6 @@ def create_properties_with_default_values():
         value = item['default']
         if item['is_path']:
             value = os.path.join(os.path.dirname(os.path.realpath(__file__)), value)
-        if not os.path.exists(value):
-            os.makedirs(value)
         if not config.has_section(section):
             config.add_section(section)
         config.set(section, config_item, value)
@@ -87,8 +85,7 @@ def create_properties_with_default_values():
     config_file = open(config_path, 'w+')
     config.write(config_file)
     config_file.close()
-
-
+    print 'Default configuration created successfully'
 
 
 def set_properties_from_user_input():
@@ -122,6 +119,7 @@ def set_properties_from_user_input():
         config.write(config_file)
         config_file.close()
         print '\nSaved config to %s' % os.path.abspath(config_path)
+
     except Exception, e:
         print e
         print "Your config file is messed up. Please run configure with flag --default"
