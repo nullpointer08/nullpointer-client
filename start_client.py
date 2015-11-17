@@ -1,4 +1,4 @@
-import logging
+import logging.config
 import os
 from optparse import OptionParser
 import subprocess
@@ -15,6 +15,8 @@ Use the -f or --fullscreen switch to start in fullscreen borderless mode
 using xinit (X cannot be on)
 '''
 
+
+# LOGGING SETTINGS
 LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -33,7 +35,8 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
             'formatter': 'simple',
             'filename': os.path.join(START_PATH, 'client_debug.log'),
-            'maxBytes': 1024*1024,
+            'filemode': 'w+', # + = reset each time the program starts
+            'maxBytes': 1024*1024, #1MB
             'backupCount': 2,
             'encoding': 'utf8'
         },
@@ -42,14 +45,15 @@ LOGGING_CONFIG = {
             'level': 'ERROR',
             'formatter': 'simple',
             'filename': os.path.join(START_PATH, 'error.log'),
-            'maxBytes': 1024*1024*100,
+            'filemode': 'w',
+            'maxBytes': 1024*1024*10, #10MB
             'backupCount': 2,
             'encoding': 'utf8'
         },
     },
     'loggers': {
         '': {
-            'handlers': ['errors'],
+            'handlers': ['console', 'errors'],
             'level': 'ERROR',
         },
         'client': {
@@ -72,7 +76,7 @@ def run(fullscreen):
         config = ConfigParser.ConfigParser()
         with open(CONFIG_PATH) as config_fp:
             config.readfp(config_fp)
-        logging.dictConfig(LOGGING_CONFIG)
+        logging.config.dictConfig(LOGGING_CONFIG)
         client = Client(config)
         client.poll_playlist()
 
