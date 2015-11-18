@@ -4,13 +4,13 @@ import sh
 from media import Media
 import logging
 
-'''
-A control class for the browser. Supports navigation to a web page and
-displaying images.
-'''
-
 
 class Browser(object):
+    '''
+    A control class for the browser. Supports navigation to a web page and
+    displaying images.
+    '''
+
 
     # CONSTANTS
     STATIC_FILE_PATH = 'file://' + os.path.abspath(os.path.dirname(__file__))

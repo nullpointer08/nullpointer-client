@@ -3,3 +3,6 @@
 *.sqlite3
 .ropeproject/
 start.sh
+media/
+playlist/
+client/client.properties
