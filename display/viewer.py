@@ -3,16 +3,15 @@ from media import Media
 from browser import Browser
 from video_player import VideoPlayer
 import logging
-'''
-A high-level class for viewing any supported media type.
-Delegates viewing to the browser or video player depending on media
-type. The displaying is performed in a separate thread, so shutdown()
-must be called before killing the program to avoid errors upon
-program termination.
-'''
-
 
 class Viewer(object):
+    '''
+    A high-level class for viewing any supported media type.
+    Delegates viewing to the browser or video player depending on media
+    type. The displaying is performed in a separate thread, so 
+    shutdown() must be called before killing the program to avoid 
+    errors upon program termination.
+    '''
 
     DISPLAY_TIME_GRANULARITY = 1  # seconds
     BROWSER = Browser()
