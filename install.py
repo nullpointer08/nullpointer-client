@@ -124,6 +124,7 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
     
     install()
+    configure.create_properties_with_default_values()
     if options.configure:
-        configure.configure()
+        configure.set_properties_from_user_input()
     DEVNULL.close()

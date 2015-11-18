@@ -20,7 +20,6 @@ class Browser(object):
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Initializing browser')
-        self.uri_is_image_base = False
         self._event_flags = {}
         self._event_listeners = {}
         self.start()
@@ -31,7 +30,6 @@ class Browser(object):
         if not self.is_alive():
             self.start()
         if media.content_type == Media.WEB_PAGE:
-            self.uri_is_image_base = False
             self.navigate(media.content_uri)
         else:
             self.show_image(media.content_uri)
