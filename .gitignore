@@ -6,3 +6,4 @@ start.sh
 media/
 playlist/
 client/client.properties
+*.log.*

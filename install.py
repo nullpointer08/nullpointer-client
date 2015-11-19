@@ -95,6 +95,9 @@ def create_startup_shell_script():
     start_path = os.path.dirname(os.path.realpath(__file__))
     startup_script = open(START_PATH + '/' + START_SHELL_SCRIPT_NAME, 'w')
     startup_script.write('#!/bin/bash\n')
+    startup_script.write('xset -dpms\n')
+    startup_script.write('xset s off\n')
+    startup_script.write('xset s noblank\n')
     startup_script.write('python %s/%s & matchbox-window-manager -use_titlebar no -use_cursor no\n' % (START_PATH, START_PYTHON_SCRIPT_NAME))
     startup_script.close()
     print 'Wrote startup script to %s' % start_path
@@ -125,5 +128,5 @@ if __name__ == '__main__':
     
     install()
     if options.configure:
-        configure.configure()
+        configure.set_properties_from_user_input()
     DEVNULL.close()
