@@ -4,6 +4,7 @@ Command line utility for setting the client properties.
 
 import os
 import ConfigParser
+from optparse import OptionParser
 import sys
 import readline
 import glob
@@ -63,6 +64,10 @@ def create_properties_with_default_values():
     :return:
     '''
     config_path = PROPERTIES_FILE_PATH
+    if os.path.isfile(config_path):
+        user_input = raw_input('Properties file found. Are you sure you want to override it with default config? (yes/no)> ')
+        if user_input != 'yes':
+            return
     config = ConfigParser.ConfigParser()
 
     for item in CONFIG_ITEMS:
@@ -117,18 +122,29 @@ def set_properties_from_user_input():
         print e
         print "Your config file is messed up. Please run configure with flag --default"
 
-HELP = "--default create properties file with default values \n--set edit properties file through guided user input"        
-
-def configure():
-    if len(sys.argv) != 2:
-        print HELP
-    elif sys.argv[1] == '--default':
-        create_properties_with_default_values()
-    elif sys.argv[1] == '--set':
-        set_properties_from_user_input()
-    else:
-        print HELP
-
 
 if __name__ == '__main__':
-    configure()
+    parser = OptionParser()
+    parser.add_option(
+        '-d',
+        '--default',
+        dest='default',
+        action='store_true',
+        default=False,
+        help='Create default properties file'
+    )
+    parser.add_option(
+        '-e',
+        '--edit',
+        dest='edit',
+        action='store_true',
+        default=False,
+        help='Edit properties file'
+    )
+    (options, args) = parser.parse_args()
+    if options.default:
+        create_properties_with_default_values()
+    if options.edit:
+        set_properties_from_user_input()
+    if not options.edit and not options.default:
+        parser.print_help()
