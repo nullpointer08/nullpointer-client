@@ -2,16 +2,17 @@ import sh
 import platform
 from media import Media
 import logging
-
-'''
-A control class for the video player.
-'''
+from abstract_viewer import AbstractViewer
 
 
-class VideoPlayer(object):
+class VideoPlayer(AbstractViewer):
+    '''
+    A control class for the video player.
+    '''
+
+    NON_PI_PLATFORMS = ('Ubuntu', 'LinuxMint')
 
     def __init__(self):
-
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Initializing VideoPlayer')
         self.process = None
@@ -20,7 +21,7 @@ class VideoPlayer(object):
         assert content.content_type == Media.VIDEO
         self.logger.debug('VideoPlayer receiving content %s', content)
         uri = content.content_uri
-        if(platform.linux_distribution()[0] == "Ubuntu"):
+        if platform.linux_distribution()[0] in self.NON_PI_PLATFORMS:
             self.process = sh.vlc(
                 '--no-osd', '-f', '--no-interact', '--repeat',
                 '--mouse-hide-timeout', '--no-video-title-show',
@@ -38,17 +39,13 @@ class VideoPlayer(object):
     def shutdown(self):
         self.logger.debug('VideoPlayer shutdown called')
         if self.is_alive():
-            if platform.linux_distribution()[0] == "Ubuntu":
+            if platform.linux_distribution()[0] in self.NON_PI_PLATFORMS:
                 sh.pkill('vlc')
             else:
-                sh.killall('omxplayer.bin', _ok_code=[0,1])
+                sh.killall('omxplayer.bin', _ok_code=[0, 1])
 
     def is_alive(self):
         if self.process is None:
             return False
         else:
             return self.process.process.exit_code is None
-
-
-def print_std(line):
-    print str(line)

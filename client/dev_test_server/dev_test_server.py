@@ -1,5 +1,5 @@
 '''
-Starts a simple HTTP server which serves content in the directory of 
+Starts a simple HTTP server which serves content in the directory of
 this file. Used for small tests of e.g. the client application
 '''
 

@@ -5,7 +5,6 @@ Command line utility for setting the client properties.
 import os
 import ConfigParser
 from optparse import OptionParser
-import sys
 import readline
 import glob
 
@@ -32,7 +31,7 @@ CONFIG_ITEMS = (
         'description': 'Enter the filepath to the device id file',
         'default': 'client/device_id.devid',
         'is_path': True
-    }, 
+    },
     {
         'section': 'Client',
         'item': 'playlist_poll_time',
@@ -43,11 +42,12 @@ CONFIG_ITEMS = (
     {
         'section': 'Server',
         'item': 'playlist_url',
-        'description': 'Enter the URL to fetch playlists from. (Not for end users)',
+        'description': 'Enter the URL to fetch playlists from.',
         'default': 'http://drajala.ddns.net:8000/api/device/{device_id}/playlist',
         'is_path': False
     },
 )
+
 
 def complete(text, state):
     return (glob.glob(text + '*') + [None])[state]
@@ -57,6 +57,7 @@ def setup_autocomplete():
     readline.set_completer_delims(' \t\n;')
     readline.parse_and_bind("tab: complete")
     readline.set_completer(complete)
+
 
 def create_properties_with_default_values():
     '''
@@ -88,7 +89,8 @@ def create_properties_with_default_values():
 
 def set_properties_from_user_input():
     '''
-    Asks user input for properties values. Needs a properties file to have been created earlier
+    Asks user input for properties values.
+    Needs a properties file to have been created earlier
     :return:
     '''
     setup_autocomplete()

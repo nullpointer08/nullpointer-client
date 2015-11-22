@@ -3,25 +3,25 @@ import os
 import sh
 from media import Media
 import logging
+from abstract_viewer import AbstractViewer
 
 
-class Browser(object):
+class Browser(AbstractViewer):
     '''
     A control class for the browser. Supports navigation to a web page and
     displaying images.
     '''
 
-
     # CONSTANTS
     STATIC_FILE_PATH = 'file://' + os.path.abspath(os.path.dirname(__file__))
     IMG_BG_HTML_FILE = 'image_base.html'
     IMG_BACKGROUND_HTML = os.path.join(STATIC_FILE_PATH, IMG_BG_HTML_FILE)
+    LOAD_FINISHED_EVENT = 'LOAD_FINISH'
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Initializing browser')
         self._event_flags = {}
-        self._event_listeners = {}
         self.start()
 
     def display_content(self, media):
@@ -39,19 +39,13 @@ class Browser(object):
         self.logger.debug('Hiding browser')
         self.load_background()
 
-    # Informs listeners of browser events
+    # Sets flags indicating the state of the brower
     def process_browser_events(self, line):
         event = str(line)
         for key in self._event_flags:
             if key in event:
                 self.logger.debug('Setting event flag %s', key)
                 self._event_flags[key] = True
-        for key in self._event_listeners:
-            if key in event:
-                listener = self._event_listeners[key]
-                if listener is not None:
-                    self.logger.debug('Sending listeners of event %s', key)
-                    listener()
 
     # Sleeps until a flag is set, used e.g. to wait for a page to load
     def wait_for_event(self, event):
@@ -88,23 +82,16 @@ class Browser(object):
 
     def navigate(self, address):
         self.logger.debug('Browser navigating to %s', address)
-        self._event_flags['LOAD_FINISH'] = False
-        self._event_listeners['LOAD_FINISH'] = None
+        self._event_flags[self.LOAD_FINISHED_EVENT] = False
         self.command('uri', address)
 
     def load_background(self):
         self.navigate(Browser.IMG_BACKGROUND_HTML)
 
     def show_image(self, img_uri):
-        self.wait_for_event('LOAD_FINISH')
+        self.wait_for_event(self.LOAD_FINISHED_EVENT)
         self.logger.debug('Browser beginning to show image %s', img_uri)
-        # Add a geometry change listener that rescales the image
-        def load_img_command():
-            self.command('js', 'loadImageFullScreen("' + img_uri + '")')
-            
-        #self._event_listeners['GEOMETRY_CHANGED'] = load_img_command
-
-        load_img_command()  # Loads the fullscreen image with JavaScript
+        self.command('js', 'loadImageFullScreen("' + img_uri + '")')
 
     def is_alive(self):
         if self.process is None:

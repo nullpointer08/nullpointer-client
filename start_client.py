@@ -36,7 +36,7 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
             'formatter': 'simple',
             'filename': os.path.join(START_PATH, 'client_debug.log'),
-            'maxBytes': 1024*1024, #1MB
+            'maxBytes': 1024*1024,  # 1MB
             'backupCount': 2,
             'encoding': 'utf8'
         },
@@ -45,7 +45,7 @@ LOGGING_CONFIG = {
             'level': 'ERROR',
             'formatter': 'simple',
             'filename': os.path.join(START_PATH, 'error.log'),
-            'maxBytes': 1024*1024*10, #10MB
+            'maxBytes': 1024*1024*10,  # 10MB
             'backupCount': 2,
             'encoding': 'utf8'
         },
@@ -66,6 +66,7 @@ LOGGING_CONFIG = {
 
     },
 }
+
 
 def run(fullscreen):
     if fullscreen:

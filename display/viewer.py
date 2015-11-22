@@ -4,12 +4,13 @@ from browser import Browser
 from video_player import VideoPlayer
 import logging
 
+
 class Viewer(object):
     '''
     A high-level class for viewing any supported media type.
     Delegates viewing to the browser or video player depending on media
-    type. The displaying is performed in a separate thread, so 
-    shutdown() must be called before killing the program to avoid 
+    type. The displaying is performed in a separate thread, so
+    shutdown() must be called before killing the program to avoid
     errors upon program termination.
     '''
 

@@ -1,11 +1,11 @@
-'''
-Represents an item to be displayed by the viewer. Consists
-of a media type, the URI to the content and the time the media should
-be displayed
-'''
-
-
 class Media(object):
+    '''
+    Represents an item to be displayed by the viewer. Consists
+    of a media type, the URI to the content and the time the media should
+    be displayed
+    '''
+
+    # Media types
     VIDEO = 'video'
     IMAGE = 'image'
     WEB_PAGE = 'web_page'
@@ -26,4 +26,8 @@ class Media(object):
         )
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.content_type == other.content_type and self.content_uri == other.content_uri and self.view_time == other.view_time
+        return \
+            type(self) == type(other) and \
+            self.content_type == other.content_type and \
+            self.content_uri == other.content_uri and \
+            self.view_time == other.view_time

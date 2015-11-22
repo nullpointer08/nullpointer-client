@@ -3,11 +3,12 @@ from threading import Lock
 from viewer import Viewer
 import logging
 
+
 class Scheduler(object):
     '''
     Schedules the content in the playlist to be displayed.
-    The scheduling occurs in its own thread. To ensure thread safety, 
-    the play list should be modified using the 
+    The scheduling occurs in its own thread. To ensure thread safety,
+    the play list should be modified using the
     modify_playlist_atomically() method.
     '''
 

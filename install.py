@@ -7,11 +7,8 @@ Requires superuser priviledges
 '''
 
 import os
-import stat
 import subprocess
 import sys
-import pip
-import ConfigParser
 import configure
 from optparse import OptionParser
 
@@ -23,13 +20,14 @@ APT_REQS = (
 )
 
 PIP_REQS = (
-   'sh==1.11',
+    'sh==1.11',
 )
 
 DEVNULL = open(os.devnull, 'wb')
 START_PATH = os.path.dirname(os.path.realpath(__file__))
 START_SHELL_SCRIPT_NAME = 'start.sh'
 START_PYTHON_SCRIPT_NAME = 'start_client.py'
+
 
 def install_apt_req(apt_req):
     retval = subprocess.call(
@@ -78,7 +76,7 @@ def install_reqs(reqs, is_installed_func, install_func):
 
 
 def add_to_startup():
-    user = 'pi' # Should this be configurable?
+    user = 'pi'  # Should this be configurable?
     start_line = START_PATH + '/' + START_PYTHON_SCRIPT_NAME + ' -f'
     cron_line = '@reboot %s python %s &\n' % (user, start_line)
     cron_file = open('/etc/crontab', 'r')
@@ -117,15 +115,15 @@ def install():
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option(
-        '-c', 
+        '-c',
         '--configure',
         dest='configure',
-        action='store_true', 
-        default=False, 
+        action='store_true',
+        default=False,
         help='Configure client properties after installation'
     )
     (options, args) = parser.parse_args()
-    
+
     install()
     configure.create_properties_with_default_values()
     if options.configure:
