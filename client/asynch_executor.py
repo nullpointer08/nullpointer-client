@@ -45,7 +45,7 @@ class AsynchExecutor(object):
         self.work_thread.start()
         self.LOG.debug('Started AsynchExecutor worker thread')
 
-    def stop(self):
+    def shutdown(self):
         ''' Stops the worker thread and joins with it '''
         self.LOG.debug('Stopping AsynchExecutor worker thread')
         self.running = False

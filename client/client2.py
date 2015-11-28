@@ -22,7 +22,8 @@ class Client(object):
             self.scheduler.start() 
         
     def start(self):
-        # Get the first playlist from file
+        # Get the first playlist from file. If there is no ready playlist,
+        # this returns an empty playlist
         playlist = self.pl_manager.fetch_playlist(local=True)
         self.schedule_playlist(playlist)
         
@@ -31,16 +32,20 @@ class Client(object):
             self.schedule_playlist(playlist)
         def pl_fetch_error(error):
             self.LOG.error("Error fetching playlist: %s" % e)
+        self.executor.start()
         try:
             while True:
                 if not self.executor.is_full():
-                    self.executor(
+                    self.executor.submit(
                         self.pl_manager.fetch_playlist, 
-                        params=(False),
+                        params=(False,),
                         pl_fetch_success,
                         pl_fetch_error
                     )
+                else:
+                    self.LOG.debug("Executor task queue is full")
                 time.sleep(poll_time)
         except KeyboardInterrupt:
+            self.executor.shutdown()
             if self.scheduler:
                 self.scheduler.shutdown()
