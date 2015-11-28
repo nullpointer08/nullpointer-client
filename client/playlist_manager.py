@@ -38,18 +38,18 @@ class PlaylistManager(object):
         try:
             pl_data = urllib2.urlopen(url).read()
         except Exception, e:
-            self.logger.error('Could not fetch playlist %s, using stored playlist', e)
+            self.LOG.error('Could not fetch playlist %s, using stored playlist', e)
             return None
         
     def fetch_local_playlist_data(self):
         if os.path.isfile(self.PLAYLIST_FILEPATH):
             pl_data = open(self.PLAYLIST_FILEPATH).read()
         else:
-            self.logger.debug('No stored playlist')
+            self.LOG.debug('No stored playlist')
             return None
             
-    def fetch_playlist(local=False):
-        if local:
+    def fetch_playlist(**kwargs):
+        if 'local' in kwargs and kwargs['local'] == True:
             pl_data = fetch_local_playlist_data()
         else:
             pl_data = fetch_remote_playlist_data()
@@ -58,20 +58,20 @@ class PlaylistManager(object):
         
         # If raw playlist data was acquired, create a playlist
         playlist_dl = json.loads(pl_data)
-        self.logger.debug('Playlist fetched %s', playlist_dl)
+        self.LOG.debug('Playlist fetched %s', playlist_dl)
         media_schedule = literal_eval(playlist_dl[PlaylistManager.SCHEDULE_NAME_STRING])
         media_schedule = self.generate_viewer_playlist(media_schedule)
-        self.logger.debug('Media schedule %s', media_schedule)
+        self.LOG.debug('Media schedule %s', media_schedule)
         # if this after playlist saved on disk
         self.download_playlist_files(media_schedule)
         self.playlist = media_schedule
-        self.logger.debug('Using playlist %s', self.playlist)
+        self.LOG.debug('Using playlist %s', self.playlist)
         return self.playlist
 
     def generate_viewer_playlist(self, playlist):
         viewer_pl = []
         for content in playlist:
-            self.logger.debug("Generating playlist for content: %s", content)
+            self.LOG.debug("Generating playlist for content: %s", content)
             content_type = content[PlaylistManager.SCHEDULE_TYPE_STRING]
             content_uri = content[PlaylistManager.SCHEDULE_URI_STRING]
             view_time = int(content[PlaylistManager.SCHEDULE_TIME_STRING])
@@ -84,18 +84,18 @@ class PlaylistManager(object):
         playlist_changed = False
         for content in playlist:
             out_file_path = self.generate_content_filepath(content.content_uri, content.content_type)
-            self.logger.debug(out_file_path)
+            self.LOG.debug(out_file_path)
             if os.path.isfile(out_file_path):
-                self.logger.debug("Found file %s", out_file_path)
+                self.LOG.debug("Found file %s", out_file_path)
                 content.content_uri = out_file_path
                 continue
             playlist_changed = True
             try:
-                self.logger.debug("Downloading content: %s", content)
+                self.LOG.debug("Downloading content: %s", content)
                 self.download_and_save_content(content.content_uri, out_file_path)
-                self.logger.debug("downloaded_data")
+                self.LOG.debug("downloaded_data")
             except Exception, e:
-                self.logger.error('Failed to download content, %s %s', content, e)
+                self.LOG.error('Failed to download content, %s %s', content, e)
                 return False
             content.content_uri = out_file_path
 
@@ -103,7 +103,7 @@ class PlaylistManager(object):
 
     def download_and_save_content(self, content_uri, out_file_path):
         content_uri = self.append_device_id_to_url(content_uri)
-        self.logger.debug("download_content() %s", content_uri)
+        self.LOG.debug("download_content() %s", content_uri)
         response = urllib2.urlopen(content_uri)
         with open(out_file_path, 'wb') as out_file:
             while True:

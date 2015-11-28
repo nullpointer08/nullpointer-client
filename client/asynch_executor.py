@@ -6,8 +6,9 @@ class AsynchTask(object):
     '''
     A simple container for functions needed to run a task
     '''
-    def __init__(self, work_func, success_func, error_func):
+    def __init__(self, work_func, params, success_func, error_func):
         self.work_func = work_func
+        self.params = params
         self.success_func = success_func
         self.error_func = error_func
 
@@ -31,7 +32,7 @@ class AsynchExecutor(object):
                 if task == 'SHUTDOWN':
                     break
                 try:
-                    retval = task.work_func()
+                    retval = task.work_func(*task.params)
                     task.success_func(retval)
                 except Exception as e:
                     task.error_func(e)
@@ -71,7 +72,9 @@ class AsynchExecutor(object):
             error_func = no_action
         else:
             error_func = kwargs['error_func']
-        task = AsynchTask(work_func, success_func, error_func)
+        if 'params' not in kwargs:
+            params = ()
+        task = AsynchTask(work_func, success_func, error_func, params)
         self.LOG.debug('Submitting new AsynchTask to FIFO queue')
         self.task_queue.put(task)
         self.LOG.debug('AsynchTask accepted into FIFO queue')
