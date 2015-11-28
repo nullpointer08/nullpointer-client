@@ -1,7 +1,9 @@
 import logging
 import urllib2
 import json
+import os
 from ast import literal_eval
+from display.media import Media
 
 class PlaylistManager(object):
 
@@ -13,48 +15,57 @@ class PlaylistManager(object):
 
     def __init__(self, config):
         # Device ID
-        device_id_file = open(self.config.get('Device', 'device_id_file'), 'r')
+        device_id_file = open(config.get('Device', 'device_id_file'), 'r')
         self.DEVICE_ID = device_id_file.read().strip()
         device_id_file.close()
         
         # Playlist URL
-        incomplete_url = self.config.get('Server', 'playlist_url')
-        self.PLAYLIST_URL = incomplete_url.format(**{'device_id': self.device_id})
+        incomplete_url = config.get('Server', 'playlist_url')
+        self.PLAYLIST_URL = incomplete_url.format(**{'device_id': self.DEVICE_ID})
         
         # Playlist file
-        playlist_file = self.config.get('Storage', 'playlist_file')
+        playlist_file = config.get('Storage', 'playlist_file')
         playlist_folder = os.path.dirname(playlist_file);
         if not os.path.exists(playlist_folder):
             os.makedirs(playlist_folder)
         self.PLAYLIST_FILEPATH = playlist_file
         
         # Media folder
-        self.MEDIA_FOLDER = self.config.get('Storage', 'media_folder')
+        self.MEDIA_FOLDER = config.get('Storage', 'media_folder')
+        if not os.path.exists(self.MEDIA_FOLDER):
+            os.makedirs(self.MEDIA_FOLDER)
         
         # Create empty playlist
         self.playlist = []
 
     def fetch_remote_playlist_data(self):
+        url = self.PLAYLIST_URL
+        self.LOG.debug('Fetching remote playlist from %s' % url)
         try:
             pl_data = urllib2.urlopen(url).read()
+            self.LOG.debug('Feteched data: %s' % pl_data)
+            return pl_data
         except Exception, e:
-            self.LOG.error('Could not fetch playlist %s, using stored playlist', e)
+            self.LOG.error('Could not fetch playlist %s, %s' % (url, e))
             return None
         
     def fetch_local_playlist_data(self):
         if os.path.isfile(self.PLAYLIST_FILEPATH):
-            pl_data = open(self.PLAYLIST_FILEPATH).read()
+            return open(self.PLAYLIST_FILEPATH).read()
         else:
             self.LOG.debug('No stored playlist')
             return None
             
-    def fetch_playlist(**kwargs):
+    def fetch_playlist(self, **kwargs):
         if 'local' in kwargs and kwargs['local'] == True:
-            pl_data = fetch_local_playlist_data()
+            pl_data = self.fetch_local_playlist_data()
         else:
-            pl_data = fetch_remote_playlist_data()
+            pl_data = self.fetch_remote_playlist_data()
+            with open(self.PLAYLIST_FILEPATH, 'w') as pl_file:
+                pl_file.write(pl_data)
+            pl_file.close()
         if pl_data is None:
-            return
+            return self.playlist
         
         # If raw playlist data was acquired, create a playlist
         playlist_dl = json.loads(pl_data)

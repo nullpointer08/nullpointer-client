@@ -3,7 +3,7 @@ import os
 from optparse import OptionParser
 import subprocess
 import ConfigParser
-from client.client import Client
+from client.client2 import Client
 
 START_PATH = os.path.dirname(os.path.realpath(__file__))
 START_SHELL_SCRIPT_NAME = 'start.sh'
@@ -78,7 +78,7 @@ def run(fullscreen):
             config.readfp(config_fp)
         logging.config.dictConfig(LOGGING_CONFIG)
         client = Client(config)
-        client.poll_playlist()
+        client.start()
 
 
 if __name__ == '__main__':

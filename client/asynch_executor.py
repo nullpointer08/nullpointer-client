@@ -1,4 +1,4 @@
-from queue import Queue
+from Queue import Queue
 from threading import Thread
 import logging
 
@@ -6,11 +6,11 @@ class AsynchTask(object):
     '''
     A simple container for functions needed to run a task
     '''
-    def __init__(self, work_func, params, success_func, error_func):
+    def __init__(self, work_func, on_success, on_error, params):
         self.work_func = work_func
+        self.on_success = on_success
+        self.on_error = on_error
         self.params = params
-        self.success_func = success_func
-        self.error_func = error_func
 
 
 class AsynchExecutor(object):
@@ -29,13 +29,15 @@ class AsynchExecutor(object):
         def consume_task_queue(executor):
             while executor.is_running():
                 task = executor.task_queue.get()
+                self.LOG.debug('Running task %s' % task)
                 if task == 'SHUTDOWN':
                     break
                 try:
                     retval = task.work_func(*task.params)
-                    task.success_func(retval)
+                    self.LOG.debug('AsynchTask finished with retval %s' % retval)
+                    task.on_success(retval)
                 except Exception as e:
-                    task.error_func(e)
+                    task.on_error(e)
         self.work_thread = Thread(target=consume_task_queue, args=(self,))
         self.work_thread.daemon = True
 
@@ -64,18 +66,22 @@ class AsynchExecutor(object):
         '''
         def no_action(param):
             pass
-        if 'success_func' not in kwargs:
-            success_func = no_action
+
+        if 'on_success' not in kwargs:
+            on_success = no_action
         else:
-            success_func = kwargs['success_func']
-        if 'error_func' not in kwargs:
-            error_func = no_action
+            on_success = kwargs['on_success']
+        if 'on_error' not in kwargs:
+            on_error = no_action
         else:
-            error_func = kwargs['error_func']
+            on_error = kwargs['on_error']
         if 'params' not in kwargs:
             params = ()
-        task = AsynchTask(work_func, success_func, error_func, params)
-        self.LOG.debug('Submitting new AsynchTask to FIFO queue')
+        else:
+            params = kwargs['params']
+
+        task = AsynchTask(work_func, on_success, on_error, params)
+        self.LOG.debug('Submitting new AsynchTask to FIFO queue...')
         self.task_queue.put(task)
         self.LOG.debug('AsynchTask accepted into FIFO queue')
 
@@ -84,4 +90,4 @@ class AsynchExecutor(object):
         If the task queue is full, calling submit() will block.
         Use this to check if submitting will block.
         '''
-        return not self.task_queue.full()
+        return self.task_queue.full()

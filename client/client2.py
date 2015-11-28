@@ -1,6 +1,8 @@
 from asynch_executor import AsynchExecutor
 import logging
-
+import time
+from playlist_manager import PlaylistManager
+from display.scheduler import Scheduler
 
 class Client(object):
 
@@ -9,10 +11,14 @@ class Client(object):
     def __init__(self, config):
         self.executor = AsynchExecutor(2)
         self.pl_manager = PlaylistManager(config)
-        self.POLL_TIME = self.config.get('Client', 'playlist_poll_time')
+        self.POLL_TIME = config.getfloat('Client', 'playlist_poll_time')
         self.scheduler = Scheduler()
 
     def schedule_playlist(self, playlist):
+        self.LOG.debug('Client scheduling playlist %s' % playlist)
+        if len(playlist) == 0:
+            self.LOG.debug('No media to schedule')
+            return
         def replace_playlist(scheduled_pl):
             del scheduled_pl[:]
             for media in playlist:
@@ -31,20 +37,19 @@ class Client(object):
         def pl_fetch_success(playlist):
             self.schedule_playlist(playlist)
         def pl_fetch_error(error):
-            self.LOG.error("Error fetching playlist: %s" % e)
+            self.LOG.error('Error fetching playlist: %s' % error)
         self.executor.start()
         try:
             while True:
                 if not self.executor.is_full():
                     self.executor.submit(
-                        self.pl_manager.fetch_playlist, 
-                        params=(False,),
-                        pl_fetch_success,
-                        pl_fetch_error
+                        self.pl_manager.fetch_playlist,
+                        on_success=pl_fetch_success,
+                        on_error=pl_fetch_error
                     )
                 else:
-                    self.LOG.debug("Executor task queue is full")
-                time.sleep(poll_time)
+                    self.LOG.debug('Executor task queue is full')
+                time.sleep(self.POLL_TIME)
         except KeyboardInterrupt:
             self.executor.shutdown()
             if self.scheduler:
