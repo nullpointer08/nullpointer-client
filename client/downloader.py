@@ -10,7 +10,7 @@ class ChunkedDownloader(object):
     '''
 
     LOG = logging.getLogger(__name__)
-    RANGE_INCREMENT = 500000  # 500 Kb
+    CHUNK_SIZE = 500000  # 500 Kb
     CHUNK_DOWNLOAD_TIMEOUT = 120  # Seconds
     RETRY_TIMEOUT = 10  # Seconds
 
@@ -27,7 +27,7 @@ class ChunkedDownloader(object):
                 bytes_fetched += len(chunk)
                 self.LOG.debug('Bytes in chunk: %s, total fetched: %s' % (len(chunk), bytes_fetched))
                 data_collector_func(chunk)
-                if len(chunk) != ChunkedDownloader.RANGE_INCREMENT:
+                if len(chunk) != ChunkedDownloader.CHUNK_SIZE:
                     break
             except Exception, e:
                 self.LOG.debug('Error downloading chunk from %s: %s. Retrying in %s seconds.' % (url, e, self.RETRY_TIMEOUT))
@@ -36,7 +36,7 @@ class ChunkedDownloader(object):
         return bytes_fetched
 
     def download_chunk(self, url, range_begin):
-        range_end = range_begin + ChunkedDownloader.RANGE_INCREMENT - 1
+        range_end = range_begin + ChunkedDownloader.CHUNK_SIZE - 1
         range_header = {
             'Range': 'bytes=%s-%s' % (range_begin, range_end)
         }
