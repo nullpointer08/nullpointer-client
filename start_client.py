@@ -3,7 +3,7 @@ import os
 from optparse import OptionParser
 import subprocess
 import ConfigParser
-from client.client2 import Client
+from client.client import Client
 
 START_PATH = os.path.dirname(os.path.realpath(__file__))
 START_SHELL_SCRIPT_NAME = 'start.sh'

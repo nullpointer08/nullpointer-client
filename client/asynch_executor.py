@@ -2,6 +2,7 @@ from Queue import Queue
 from threading import Thread
 import logging
 
+
 class AsynchTask(object):
     '''
     A simple container for functions needed to run a task
@@ -19,13 +20,14 @@ class AsynchExecutor(object):
     Calls to submit() block until there is space in the queue.
     The daemon thread will block if the queue is empty.
     '''
-    
+
     LOG = logging.getLogger(__name__)
 
     def __init__(self, queue_size=10):
         self.LOG.debug('Initializing AsynchExecutor')
         self.running = False
         self.task_queue = Queue(queue_size)  # FIFO queue
+
         def consume_task_queue(executor):
             while executor.is_running():
                 task = executor.task_queue.get()
@@ -54,7 +56,7 @@ class AsynchExecutor(object):
         self.task_queue.put('SHUTDOWN')
         self.work_thread.join()
         self.LOG.debug('AsynchExecutor worker thread stopped')
-    
+
     def is_running(self):
         return self.running
 
