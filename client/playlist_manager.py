@@ -25,7 +25,7 @@ class PlaylistManager(object):
         # Playlist URL
         incomplete_url = config.get('Server', 'playlist_url')
         self.PLAYLIST_URL = incomplete_url.format(**{'device_id': self.DEVICE_ID})
-        
+
         # Playlist file
         playlist_file = config.get('Storage', 'playlist_file')
         playlist_folder = os.path.dirname(playlist_file)
@@ -51,14 +51,19 @@ class PlaylistManager(object):
         }
         self.LOG.debug('Fetching remote playlist from %s' % url)
         try:
-            pl_data = requests.get(
+            response = requests.get(
                 url,
                 timeout=(None, 60),
                 stream=False,
                 headers=headers)
+            if response.status_code == 200:
 
-            self.LOG.debug('Feteched data: %s' % pl_data)
-            return pl_data
+                self.LOG.debug('Feteched data: %s' % response.content)
+                return response.content
+            else:
+                self.LOG.debug('Failed to fetch data with status: %s and content: %s',
+                               response.status_code, response.content)
+                return None
         except Exception, e:
             self.LOG.error('Could not fetch playlist %s, %s' % (url, e))
             return None
