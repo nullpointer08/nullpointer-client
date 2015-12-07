@@ -2,7 +2,6 @@ import logging
 import requests
 import json
 import os
-import urlparse
 
 from ast import literal_eval
 from display.media import Media
@@ -42,7 +41,7 @@ class PlaylistManager(object):
         self.playlist = []
 
         # Utility for downloading files
-        self.downloader = ChunkedDownloader(urlparse(self.PLAYLIST_URL).netloc, device_id)
+        self.downloader = ChunkedDownloader(self.PLAYLIST_URL, device_id)
 
     def fetch_remote_playlist_data(self):
         url = self.PLAYLIST_URL

@@ -2,7 +2,7 @@ import requests
 import time
 import logging
 import base64
-import urlparse
+from urlparse import urlparse
 
 
 class ChunkedDownloader(object):
@@ -16,8 +16,8 @@ class ChunkedDownloader(object):
     CHUNK_DOWNLOAD_TIMEOUT = 120  # Seconds
     RETRY_TIMEOUT = 10  # Seconds
 
-    def __init__(self, server_net_loc, device_id):
-        self.HISRA_NET_LOC = server_net_loc
+    def __init__(self, server_url, device_id):
+        self.HISRA_NET_LOC = urlparse(server_url).netloc
         self.AUTHORIZATION_HEADER = 'Device %s' % device_id
 
     def download(self, url, data_collector_func):
