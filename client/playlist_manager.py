@@ -1,7 +1,9 @@
 import logging
-import urllib2
+import requests
 import json
 import os
+import urlparse
+
 from ast import literal_eval
 from display.media import Media
 from downloader import ChunkedDownloader
@@ -18,12 +20,11 @@ class PlaylistManager(object):
     def __init__(self, config):
         # Device ID
         device_id_file = open(config.get('Device', 'device_id_file'), 'r')
-        self.DEVICE_ID = device_id_file.read().strip()
+        device_id = device_id_file.read().strip()
         device_id_file.close()
 
         # Playlist URL
-        incomplete_url = config.get('Server', 'playlist_url')
-        self.PLAYLIST_URL = incomplete_url.format(**{'device_id': self.DEVICE_ID})
+        self.PLAYLIST_URL = config.get('Server', 'playlist_url')
 
         # Playlist file
         playlist_file = config.get('Storage', 'playlist_file')
@@ -41,13 +42,21 @@ class PlaylistManager(object):
         self.playlist = []
 
         # Utility for downloading files
-        self.downloader = ChunkedDownloader()
+        self.downloader = ChunkedDownloader(urlparse(self.PLAYLIST_URL).netloc, device_id)
 
     def fetch_remote_playlist_data(self):
         url = self.PLAYLIST_URL
+        headers = {
+            'Authentication': 'Device %s' % self.DEVICE_ID
+        }
         self.LOG.debug('Fetching remote playlist from %s' % url)
         try:
-            pl_data = urllib2.urlopen(url).read()
+            pl_data = requests.get(
+                url,
+                timeout=(None, 60),
+                stream=False,
+                headers=headers)
+
             self.LOG.debug('Feteched data: %s' % pl_data)
             return pl_data
         except Exception, e:
@@ -116,13 +125,8 @@ class PlaylistManager(object):
         return playlist_changed
 
     def download_and_save_content(self, content_uri, out_file_path):
-        content_uri = self.append_device_id_to_url(content_uri)
         with open(out_file_path, 'wb') as out_file:
             self.downloader.download(content_uri, out_file.write)
-
-    def append_device_id_to_url(self, url):
-        device_id_query_param = '?device_id=%s' % self.DEVICE_ID
-        return url + device_id_query_param
 
     def generate_filename(self, content_uri, content_type):
         uri_split = content_uri.split('/')

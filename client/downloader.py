@@ -1,6 +1,8 @@
 import requests
 import time
 import logging
+import base64
+import urlparse
 
 
 class ChunkedDownloader(object):
@@ -13,6 +15,10 @@ class ChunkedDownloader(object):
     CHUNK_SIZE = 500000  # 500 Kb
     CHUNK_DOWNLOAD_TIMEOUT = 120  # Seconds
     RETRY_TIMEOUT = 10  # Seconds
+
+    def __init__(self, server_net_loc, device_id):
+        self.HISRA_NET_LOC = server_net_loc
+        self.AUTHORIZATION_HEADER = 'Device %s' % device_id
 
     def download(self, url, data_collector_func):
         '''
@@ -37,14 +43,17 @@ class ChunkedDownloader(object):
 
     def download_chunk(self, url, range_begin):
         range_end = range_begin + ChunkedDownloader.CHUNK_SIZE - 1
-        range_header = {
+        headers = {
             'Range': 'bytes=%s-%s' % (range_begin, range_end)
         }
-        self.LOG.debug('Downloading bytes %s' % range_header['Range'])
+        if urlparse(url).netloc == self.HISRA_NET_LOC:
+            headers['Authorization'] = self.AUTHORIZATION_HEADER
+
+        self.LOG.debug('Downloading bytes %s' % headers['Range'])
         response = requests.get(
             url,
             timeout=(None, 60),
             stream=True,
-            headers=range_header
+            headers=headers
         )
         return response.content
