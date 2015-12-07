@@ -23,8 +23,9 @@ class PlaylistManager(object):
         device_id_file.close()
 
         # Playlist URL
-        self.PLAYLIST_URL = config.get('Server', 'playlist_url')
-
+        incomplete_url = config.get('Server', 'playlist_url')
+        self.PLAYLIST_URL = incomplete_url.format(**{'device_id': self.DEVICE_ID})
+        
         # Playlist file
         playlist_file = config.get('Storage', 'playlist_file')
         playlist_folder = os.path.dirname(playlist_file)
