@@ -46,7 +46,7 @@ class PlaylistManager(object):
     def fetch_remote_playlist_data(self):
         url = self.PLAYLIST_URL
         headers = {
-            'Authentication': 'Device %s' % self.DEVICE_ID
+            'Authorization': 'Device %s' % self.DEVICE_ID
         }
         self.LOG.debug('Fetching remote playlist from %s' % url)
         try:
