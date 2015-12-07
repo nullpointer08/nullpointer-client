@@ -19,7 +19,7 @@ class PlaylistManager(object):
     def __init__(self, config):
         # Device ID
         device_id_file = open(config.get('Device', 'device_id_file'), 'r')
-        device_id = device_id_file.read().strip()
+        self.DEVICE_ID = device_id_file.read().strip()
         device_id_file.close()
 
         # Playlist URL
@@ -41,7 +41,7 @@ class PlaylistManager(object):
         self.playlist = []
 
         # Utility for downloading files
-        self.downloader = ChunkedDownloader(self.PLAYLIST_URL, device_id)
+        self.downloader = ChunkedDownloader(self.PLAYLIST_URL, self.DEVICE_ID)
 
     def fetch_remote_playlist_data(self):
         url = self.PLAYLIST_URL
@@ -64,7 +64,10 @@ class PlaylistManager(object):
 
     def fetch_local_playlist_data(self):
         if os.path.isfile(self.PLAYLIST_FILEPATH):
-            return open(self.PLAYLIST_FILEPATH).read()
+            local_playlist = open(self.PLAYLIST_FILEPATH).read()
+            if len(local_playlist) == 0:
+                return None
+            return local_playlist
         else:
             self.LOG.debug('No stored playlist')
             return None
