@@ -43,6 +43,7 @@ class Scheduler(object):
             self.logger.debug('Exiting scheduler worker thread')
 
         self.work_thread = Thread(target=schedule_worker, args=(self,))
+        self.work_thread.daemon = True
         self.work_thread.start()
 
     def shutdown(self):

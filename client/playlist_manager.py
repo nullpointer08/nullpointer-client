@@ -6,6 +6,7 @@ import os
 from ast import literal_eval
 from display.media import Media
 from downloader import ChunkedDownloader
+from downloader import ResumableFileDownload
 
 
 class PlaylistManager(object):
@@ -81,16 +82,22 @@ class PlaylistManager(object):
     def fetch_playlist(self, **kwargs):
         if 'local' in kwargs and kwargs['local'] is True:
             pl_data = self.fetch_local_playlist_data()
+            if pl_data is None:
+                return self.playlist
         else:
             pl_data = self.fetch_remote_playlist_data()
+            if pl_data is None:
+                return self.playlist
             with open(self.PLAYLIST_FILEPATH, 'w') as pl_file:
                 pl_file.write(pl_data)
             pl_file.close()
-        if pl_data is None:
-            return self.playlist
 
         # If raw playlist data was acquired, create a playlist
-        playlist_dl = json.loads(pl_data)
+        try:
+            playlist_dl = json.loads(pl_data)
+        except Exception, e:
+            self.LOG.error('Playlist likely corrupted: %s' % e)
+            return self.playlist
         self.LOG.debug('Playlist fetched %s', playlist_dl)
         media_schedule = literal_eval(playlist_dl[PlaylistManager.SCHEDULE_NAME_STRING])
         media_schedule = self.generate_viewer_playlist(media_schedule)
@@ -133,8 +140,12 @@ class PlaylistManager(object):
         return playlist_changed
 
     def download_and_save_content(self, content_uri, out_file_path):
-        with open(out_file_path, 'wb') as out_file:
-            self.downloader.download(content_uri, out_file.write)
+        resumable_dl = ResumableFileDownload(
+            content_uri,
+            out_file_path,
+            self.downloader
+        )
+        resumable_dl.download()
 
     def generate_filename(self, content_uri, content_type):
         uri_split = content_uri.split('/')
