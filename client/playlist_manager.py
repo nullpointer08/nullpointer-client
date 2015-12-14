@@ -136,8 +136,8 @@ class PlaylistManager(object):
     def download_playlist_files(self, playlist):
         for content in playlist:
             try:
-                resumable_dl = self.downloader.download(content)
+                content.content_uri = self.downloader.download(content)
             except Exception, e:
                 self.LOG.error('Failed to download content, %s %s', content, e)
                 return False
-        return resumable_dl.filepath
+        return True

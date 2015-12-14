@@ -5,6 +5,7 @@ import os
 import shutil
 from urlparse import urlparse
 import re
+from hashlib import md5
 
 class ResumableFileDownload(object):
     '''
@@ -19,37 +20,35 @@ class ResumableFileDownload(object):
     missing portion of the file is downloaded based on the number of bytes
     the '.incomplete' file contains.
     '''
+    MD5_STRING = "md5"
 
-    def __init__(self, url, downloader):
+    def __init__(self, url, filename, md5):
         self.url = url
-        self.filepath = ChunkedDownloader.MEDIA_FOLDER
-        self.incomplete_filepath = filepath + '.incomplete'
-        self.downloader = downloader
+        self.complete_filepath = ChunkedDownloader.MEDIA_FOLDER + self.MD5_STRING + str(md5) + filename
+        self.incomplete_filepath = self.complete_filepath + '.incomplete'
+        self.md5 = md5
 
-    def download(self):
-        if self.is_incomplete():
-            self.download_missing_bytes()
-            os.rename(self.incomplete_filepath, self.filepath)
-
-    def is_incomplete(self):
-        if not os.path.isfile(self.filepath):
-            return True
-        if os.path.isfile(self.incomplete_filepath):
+    def is_complete(self):
+        if os.path.isfile(self.complete_filepath):
             return True
         return False
 
-    def download_missing_bytes(self):
-        if not os.path.isfile(self.incomplete_filepath):
-            fetched_bytes = 0
-        else:
-            fetched_bytes = os.path.getsize(self.incomplete_filepath)
-        with open(self.incomplete_filepath, 'ab') as incomplete_file:
-            self.downloader.download(
-                self.url,
-                incomplete_file.write,
-                fetched_bytes
-            )
+    def stream_to_file(self, iter_function):
+        with open(self.incomplete_filepath, 'wb') as f:
+            for chunk in iter_function(chunk_size=1024):
+                f.write(chunk)
 
+    def download_complete(self):
+        if os.path.isfile(self.incomplete_filepath):
+            file_md5 = md5(self.incomplete_filepath)
+            if(file_md5 == md5):
+                os.rename(self.incomplete_filepath, self.complete_filepath)
+        raise Exception("Error renaming a complete file.")
+
+    def downloaded_bytes(self):
+        if os.path.isfile(self.incomplete_filepath):
+            return os.path.getsize(self.incomplete_filepath)
+        return 0
 
 class ChunkedDownloader(object):
     '''
@@ -87,60 +86,19 @@ class ChunkedDownloader(object):
         if resumable_download.is_complete():
             response.close()
             return resumable_download.filepath
-        if resumable_download.dowloaded_bytes() > 0:
+        downloaded_bytes = resumable_download.dowloaded_bytes()
+        if downloaded_bytes > 0:
             response.close()
-            headers['Range'] = 'bytes=%s-' % resumable_download.downloaded_bytes()
+            # TODO +1 or not?
+            headers['Range'] = 'bytes=%s-' % downloaded_bytes+1
             response = requests.get(
             url,
             timeout=self.TIMEOUTS,
             stream=True,
             headers=headers)
 
-        for chunk in response.iter_content():
-            resumable_download.save(chunk)
+        resumable_download.stream_to_file(response.iter_content)
 
-        return resumable_download
+        resumable_download.download_complete()
 
-    # def download(self, url, data_collector_func, bytes_fetched=0):
-    #     '''
-    #     The downloaded bytes are provided in chunks to the data_collector_func
-    #     as a parameter when they become available.
-    #     '''
-    #     self.LOG.debug('Beginning to download content from %s' % url)
-    #     while True:
-    #         try:
-    #             chunk = self.download_chunk(url, bytes_fetched)
-    #             bytes_fetched += len(chunk)
-    #             self.LOG.debug('Bytes in chunk: %s, total fetched: %s' % (len(chunk), bytes_fetched))
-    #             data_collector_func(chunk)
-    #             if len(chunk) != ChunkedDownloader.CHUNK_SIZE:
-    #                 break
-    #         except Exception, e:
-    #             print "Timed out when downloading chunk: %s" % e
-    #             self.LOG.debug('Error downloading chunk from %s: %s. Retrying in %s seconds.' % (url, e, self.RETRY_TIMEOUT))
-    #             time.sleep(ChunkedDownloader.RETRY_TIMEOUT)
-    #     self.LOG.debug('Finished downloading %s: %s bytes' % (url, bytes_fetched))
-    #     return bytes_fetched
-    #
-    # def download_chunk(self, url, range_begin):
-    #     range_end = range_begin + ChunkedDownloader.CHUNK_SIZE - 1
-    #     headers = {
-    #         'Range': 'bytes=%s-%s' % (range_begin, range_end)
-    #     }
-    #     if urlparse(url).netloc == self.HISRA_NET_LOC:
-    #         headers['Authorization'] = self.AUTHORIZATION_HEADER
-    #
-    #     self.LOG.debug('Downloading bytes %s' % headers['Range'])
-    #     response = requests.get(
-    #         url,
-    #         # timeout=(None, 60),
-    #         stream=True,
-    #         headers=headers
-    #     )
-    #     return response.content
-
-
-if __name__ == '__main__':
-    file_dl = ResumableFileDownload('http://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_2mb.mp4', 'vid.mp4')
-    file_dl.download()
-    print "Finished file download"
+        return resumable_download.complete_filepath
