@@ -40,10 +40,23 @@ class PlaylistManager(object):
             os.makedirs(self.MEDIA_FOLDER)
 
         # Create empty playlist
-        self.playlist = []
+        #self.playlist = []
 
         # Utility for downloading files
-        self.downloader = ChunkedDownloader(self.PLAYLIST_URL, self.DEVICE_ID)
+        self.downloader = ChunkedDownloader(self.PLAYLIST_URL, self.DEVICE_ID, self.MEDIA_FOLDER)
+
+    def fetch_local_playlist(self):
+        if os.path.isfile(self.PLAYLIST_FILEPATH):
+            with open(self.PLAYLIST_FILEPATH) as playlist_file:
+                local_playlist = playlist_file.read()
+            if local_playlist:
+                return self.parse_playlist(local_playlist)
+                # We do not download files here because it would defeat the purpose.
+                # We trust the files have either been downloaded
+                # or we start to download them the next time we download a playlist
+                # this way if the playlist has changed we don't unnecessarily download old files
+        self.LOG.debug('No stored playlist')
+        return []
 
     def fetch_remote_playlist_data(self):
         url = self.PLAYLIST_URL
@@ -57,56 +70,56 @@ class PlaylistManager(object):
                 timeout=(None, 60),
                 stream=False,
                 headers=headers)
-            if response.status_code == 200:
 
-                self.LOG.debug('Feteched data: %s' % response.content)
+            if response.status_code == 200:
+                self.LOG.debug('Fetched data: %s' % response.content)
                 return response.content
-            else:
-                self.LOG.debug('Failed to fetch data with status: %s and content: %s',
-                               response.status_code, response.content)
-                return None
+            raise Exception('Wrong status from server while fetching playlist: %s', response.status_code)
+
         except Exception, e:
             self.LOG.error('Could not fetch playlist %s, %s' % (url, e))
-            return None
+            #re-raise error so our async executor knows to not set this as a playlist.
+            raise
 
-    def fetch_local_playlist_data(self):
-        if os.path.isfile(self.PLAYLIST_FILEPATH):
-            local_playlist = open(self.PLAYLIST_FILEPATH).read()
-            if len(local_playlist) == 0:
-                return None
-            return local_playlist
-        else:
-            self.LOG.debug('No stored playlist')
-            return None
+    def fetch_playlist(self):
+        pl_data = self.fetch_remote_playlist_data()
+        if pl_data is None:
+            raise Exception("No playlist data received from server.")
 
-    def fetch_playlist(self, **kwargs):
-        if 'local' in kwargs and kwargs['local'] is True:
-            pl_data = self.fetch_local_playlist_data()
-            if pl_data is None:
-                return self.playlist
-        else:
-            pl_data = self.fetch_remote_playlist_data()
-            if pl_data is None:
-                return self.playlist
-            with open(self.PLAYLIST_FILEPATH, 'w') as pl_file:
-                pl_file.write(pl_data)
-            pl_file.close()
+        playlist = self.parse_playlist(pl_data)
+        playlist_files_downloaded = self.download_playlist_files(playlist)
+        if playlist_files_downloaded:
+            self.save_playlist_to_file(playlist)
+            return playlist
+        raise Exception("Files were not downloaded.")
 
-        # If raw playlist data was acquired, create a playlist
+    def parse_playlist(self, pl_data):
+        self.LOG.debug("Parsing playlist")
         try:
             playlist_dl = json.loads(pl_data)
         except Exception, e:
             self.LOG.error('Playlist likely corrupted: %s' % e)
-            return self.playlist
+            #re-raise error so our async executor knows to not set this as a playlist.
+            raise
+
         self.LOG.debug('Playlist fetched %s', playlist_dl)
         media_schedule = literal_eval(playlist_dl[PlaylistManager.SCHEDULE_NAME_STRING])
         media_schedule = self.generate_viewer_playlist(media_schedule)
         self.LOG.debug('Media schedule %s', media_schedule)
-        # if this after playlist saved on disk
-        self.download_playlist_files(media_schedule)
-        self.playlist = media_schedule
-        self.LOG.debug('Using playlist %s', self.playlist)
-        return self.playlist
+        return media_schedule
+
+    def save_playlist_to_file(self, playlist):
+        self.LOG.debug('Saving playlist to file')
+        json_playlist = list
+        for content in playlist:
+            json_content = dict();
+            json_content[PlaylistManager.SCHEDULE_TYPE_STRING] = content.content_type
+            json_content[PlaylistManager.SCHEDULE_URI_STRING] = content.content_uri
+            json_content[PlaylistManager.SCHEDULE_TIME_STRING] = content.view_time
+            json_playlist.append(json_content)
+        with open(self.PLAYLIST_FILEPATH, 'w') as pl_file:
+            pl_file.write(json.dumps(json_playlist))
+        self.LOG.debug("Playlist saved")
 
     def generate_viewer_playlist(self, playlist):
         viewer_pl = []
@@ -121,39 +134,10 @@ class PlaylistManager(object):
 
     # NOTE: Also sets content_uri to local uri
     def download_playlist_files(self, playlist):
-        playlist_changed = False
         for content in playlist:
-            out_file_path = self.generate_content_filepath(content.content_uri, content.content_type)
-            self.LOG.debug(out_file_path)
-            if os.path.isfile(out_file_path):
-                self.LOG.debug("Found file %s", out_file_path)
-                content.content_uri = out_file_path
-                continue
-            playlist_changed = True
             try:
-                self.download_and_save_content(content.content_uri, out_file_path)
+                resumable_dl = self.downloader.download(content)
             except Exception, e:
                 self.LOG.error('Failed to download content, %s %s', content, e)
                 return False
-            content.content_uri = out_file_path
-
-        return playlist_changed
-
-    def download_and_save_content(self, content_uri, out_file_path):
-        resumable_dl = ResumableFileDownload(
-            content_uri,
-            out_file_path,
-            self.downloader
-        )
-        resumable_dl.download()
-
-    def generate_filename(self, content_uri, content_type):
-        uri_split = content_uri.split('/')
-        if len(uri_split) == 0:
-            return str(hash(content_uri)) + '.' + content_type
-        else:
-            return uri_split[len(uri_split)-1]
-
-    def generate_content_filepath(self, content_uri, content_type):
-        file_name = self.generate_filename(content_uri, content_type)
-        return self.MEDIA_FOLDER + file_name
+        return resumable_dl.filepath

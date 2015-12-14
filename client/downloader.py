@@ -4,7 +4,7 @@ import logging
 import os
 import shutil
 from urlparse import urlparse
-
+import re
 
 class ResumableFileDownload(object):
     '''
@@ -20,17 +20,16 @@ class ResumableFileDownload(object):
     the '.incomplete' file contains.
     '''
 
-    def __init__(self, url, filepath, downloader):
+    def __init__(self, url, downloader):
         self.url = url
-        self.filepath = filepath
+        self.filepath = ChunkedDownloader.MEDIA_FOLDER
         self.incomplete_filepath = filepath + '.incomplete'
         self.downloader = downloader
 
     def download(self):
         if self.is_incomplete():
             self.download_missing_bytes()
-            shutil.copy2(self.incomplete_filepath, self.filepath)
-            os.remove(self.incomplete_filepath)
+            os.rename(self.incomplete_filepath, self.filepath)
 
     def is_incomplete(self):
         if not os.path.isfile(self.filepath):
@@ -63,47 +62,82 @@ class ChunkedDownloader(object):
     CHUNK_DOWNLOAD_TIMEOUT = 120  # Seconds
     RETRY_TIMEOUT = 10  # Seconds
 
-    def __init__(self, server_url, device_id):
+    def __init__(self, server_url, device_id, media_folder):
         self.HISRA_NET_LOC = urlparse(server_url).netloc
         self.AUTHORIZATION_HEADER = 'Device %s' % device_id
+        self.MEDIA_FOLDER = media_folder
+        self.TIMEOUTS = (None, 60)
 
-    def download(self, url, data_collector_func, bytes_fetched=0):
-        '''
-        The downloaded bytes are provided in chunks to the data_collector_func
-        as a parameter when they become available.
-        '''
-        self.LOG.debug('Beginning to download content from %s' % url)
-        while True:
-            try:
-                chunk = self.download_chunk(url, bytes_fetched)
-                bytes_fetched += len(chunk)
-                self.LOG.debug('Bytes in chunk: %s, total fetched: %s' % (len(chunk), bytes_fetched))
-                data_collector_func(chunk)
-                if len(chunk) != ChunkedDownloader.CHUNK_SIZE:
-                    break
-            except Exception, e:
-                print "Timed out when downloading chunk: %s" % e
-                self.LOG.debug('Error downloading chunk from %s: %s. Retrying in %s seconds.' % (url, e, self.RETRY_TIMEOUT))
-                time.sleep(ChunkedDownloader.RETRY_TIMEOUT)
-        self.LOG.debug('Finished downloading %s: %s bytes' % (url, bytes_fetched))
-        return bytes_fetched
 
-    def download_chunk(self, url, range_begin):
-        range_end = range_begin + ChunkedDownloader.CHUNK_SIZE - 1
-        headers = {
-            'Range': 'bytes=%s-%s' % (range_begin, range_end)
-        }
+    # idea would be we download as much as we can and ResumableFileDownload handles file operations.
+    # not ready. resumablefiledownload has not been changed yet.
+    def download(self, url):
+        headers = {}
         if urlparse(url).netloc == self.HISRA_NET_LOC:
             headers['Authorization'] = self.AUTHORIZATION_HEADER
-
-        self.LOG.debug('Downloading bytes %s' % headers['Range'])
         response = requests.get(
             url,
-            # timeout=(None, 60),
+            timeout=self.TIMEOUTS,
             stream=True,
             headers=headers
         )
-        return response.content
+        filename = re.findall("filename=(.+)", response.headers['Content-Disposition']).strip()
+        md5 = response.headers['Content-MD5']
+        resumable_download = ResumableFileDownload(url,filename,md5)
+        if resumable_download.is_complete():
+            response.close()
+            return resumable_download.filepath
+        if resumable_download.dowloaded_bytes() > 0:
+            response.close()
+            headers['Range'] = 'bytes=%s-' % resumable_download.downloaded_bytes()
+            response = requests.get(
+            url,
+            timeout=self.TIMEOUTS,
+            stream=True,
+            headers=headers)
+
+        for chunk in response.iter_content():
+            resumable_download.save(chunk)
+
+        return resumable_download
+
+    # def download(self, url, data_collector_func, bytes_fetched=0):
+    #     '''
+    #     The downloaded bytes are provided in chunks to the data_collector_func
+    #     as a parameter when they become available.
+    #     '''
+    #     self.LOG.debug('Beginning to download content from %s' % url)
+    #     while True:
+    #         try:
+    #             chunk = self.download_chunk(url, bytes_fetched)
+    #             bytes_fetched += len(chunk)
+    #             self.LOG.debug('Bytes in chunk: %s, total fetched: %s' % (len(chunk), bytes_fetched))
+    #             data_collector_func(chunk)
+    #             if len(chunk) != ChunkedDownloader.CHUNK_SIZE:
+    #                 break
+    #         except Exception, e:
+    #             print "Timed out when downloading chunk: %s" % e
+    #             self.LOG.debug('Error downloading chunk from %s: %s. Retrying in %s seconds.' % (url, e, self.RETRY_TIMEOUT))
+    #             time.sleep(ChunkedDownloader.RETRY_TIMEOUT)
+    #     self.LOG.debug('Finished downloading %s: %s bytes' % (url, bytes_fetched))
+    #     return bytes_fetched
+    #
+    # def download_chunk(self, url, range_begin):
+    #     range_end = range_begin + ChunkedDownloader.CHUNK_SIZE - 1
+    #     headers = {
+    #         'Range': 'bytes=%s-%s' % (range_begin, range_end)
+    #     }
+    #     if urlparse(url).netloc == self.HISRA_NET_LOC:
+    #         headers['Authorization'] = self.AUTHORIZATION_HEADER
+    #
+    #     self.LOG.debug('Downloading bytes %s' % headers['Range'])
+    #     response = requests.get(
+    #         url,
+    #         # timeout=(None, 60),
+    #         stream=True,
+    #         headers=headers
+    #     )
+    #     return response.content
 
 
 if __name__ == '__main__':

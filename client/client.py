@@ -32,7 +32,7 @@ class Client(object):
     def start(self):
         # Get the first playlist from file. If there is no ready playlist,
         # this returns an empty playlist
-        playlist = self.pl_manager.fetch_playlist(local=True)
+        playlist = self.pl_manager.fetch_local_playlist()
         self.schedule_playlist(playlist)
 
         # After this, start polling for new playlists asynchronously
