@@ -123,6 +123,8 @@ class PlaylistManager(object):
     def download_playlist_files(self, playlist):
         playlist_changed = False
         for content in playlist:
+            if content.content_type == 'web_page':
+                continue  # Web pages are not downloaded
             out_file_path = self.generate_content_filepath(content.content_uri, content.content_type)
             self.LOG.debug(out_file_path)
             if os.path.isfile(out_file_path):
