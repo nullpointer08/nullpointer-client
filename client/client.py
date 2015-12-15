@@ -39,8 +39,7 @@ class Client(object):
 
         # Run by AsynchExecutor
         def clean_old_files_and_get_new_playlist():
-            if self.media_cleaner.is_cleanup_required():
-                self.media_cleaner.clean_media()
+            self.media_cleaner.clean_media()
             return self.pl_manager.fetch_playlist()
 
         # Called by AsynchExecutor when there was an error

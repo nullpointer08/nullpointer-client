@@ -24,13 +24,15 @@ class MediaCleaner(object):
 
     def clean_media(self, force_clean_unused=False):
         self.LOG.debug('Cleaning up old media (force_clean_unused=%s)' % force_clean_unused)
+        if self.is_cleanup_required():
+            force_clean_unused = True
         unused_media = self.get_all_currently_unused_media()
         for media in unused_media:
             if force_clean_unused or self.is_media_old(media):
                 self.LOG.debug('Removing old media: %s' % media)
                 os.remove(media)
 
-    def is_cleanup_required(self):
+    def is_force_cleanup_required(self):
         statvfs = os.statvfs(self.media_folder)
         free_blocks = statvfs.f_bavail
         block_size = statvfs.f_frsize
