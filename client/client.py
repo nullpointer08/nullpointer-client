@@ -3,6 +3,7 @@ import logging
 import time
 from playlist_manager import PlaylistManager
 from display.scheduler import Scheduler
+from media_cleaner import MediaCleaner
 
 
 class Client(object):
@@ -14,6 +15,7 @@ class Client(object):
         self.pl_manager = PlaylistManager(config)
         self.POLL_TIME = config.getfloat('Client', 'playlist_poll_time')
         self.scheduler = Scheduler()
+        self.media_cleaner = MediaCleaner(config)
 
     def schedule_playlist(self, playlist):
         self.LOG.debug('Client scheduling playlist %s' % playlist)
@@ -35,10 +37,13 @@ class Client(object):
         playlist = self.pl_manager.fetch_playlist(local=True)
         self.schedule_playlist(playlist)
 
-        # After this, start polling for new playlists asynchronously
-        def pl_fetch_success(playlist):
-            self.schedule_playlist(playlist)
+        # Run by AsynchExecutor
+        def clean_old_files_and_get_new_playlist():
+            if self.media_cleaner.is_cleanup_required():
+                self.media_cleaner.clean_media()
+            return self.pl_manager.fetch_playlist()
 
+        # Called by AsynchExecutor when there was an error
         def pl_fetch_error(error):
             self.LOG.error('Error fetching playlist: %s' % error)
 
@@ -48,7 +53,7 @@ class Client(object):
                 if not self.executor.is_full():
                     self.executor.submit(
                         self.pl_manager.fetch_playlist,
-                        on_success=pl_fetch_success,
+                        on_success=self.schedule_playlist,
                         on_error=pl_fetch_error
                     )
                 else:

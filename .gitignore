@@ -7,3 +7,4 @@ media/
 playlist/
 client/client.properties
 *.log.*
+restart.sh

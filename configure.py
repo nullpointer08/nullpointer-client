@@ -26,6 +26,20 @@ CONFIG_ITEMS = (
         'is_path': True
     },
     {
+        'section': 'Storage',
+        'item': 'cleanup_time_h',
+        'description': 'Enter how long unused media files are kept (hours)',
+        'default': '24',
+        'is_path': False
+    },
+    {
+        'section': 'Storage',
+        'item': 'cleanup_threshold_mb',
+        'description': 'Enter the number of megabytes for media to keep available',
+        'default': '100',
+        'is_path': False
+    },
+    {
         'section': 'Device',
         'item': 'device_id_file',
         'description': 'Enter the filepath to the device id file',
@@ -45,7 +59,7 @@ CONFIG_ITEMS = (
         'description': 'Enter the URL to fetch playlists from.',
         'default': 'http://drajala.ddns.net:8000/api/device/{device_id}/playlist',
         'is_path': False
-    },
+    }
 )
 
 
