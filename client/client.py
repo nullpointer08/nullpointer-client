@@ -25,6 +25,7 @@ class Client(object):
 
         def replace_playlist(scheduled_pl):
             del scheduled_pl[:]
+            scheduled_pl = list
             self.LOG.debug(playlist)
             for media in playlist:
                 self.LOG.debug(media)
