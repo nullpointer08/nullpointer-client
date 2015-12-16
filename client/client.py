@@ -25,13 +25,7 @@ class Client(object):
 
         def replace_playlist(scheduled_pl):
             del scheduled_pl[:]
-            self.LOG.error("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
-            self.LOG.error(scheduled_pl)
-            self.LOG.error(playlist)
             for media in playlist:
-                self.LOG.error(scheduled_pl)
-                self.LOG.error("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
-                self.LOG.error(media)
                 scheduled_pl.append(media)
         self.scheduler.modify_playlist_atomically(replace_playlist)
         if not self.scheduler.running:

@@ -162,9 +162,9 @@ class PlaylistJsonParser(object):
 
     def save_playlist_to_file(self, playlist):
         self.LOG.debug('Saving playlist to file')
-        json_playlist = list
+        json_playlist = []
         for content in playlist:
-            json_content = dict();
+            json_content = {}
             json_content[PlaylistManager.SCHEDULE_TYPE_STRING] = content.content_type
             json_content[PlaylistManager.SCHEDULE_URI_STRING] = content.content_uri
             json_content[PlaylistManager.SCHEDULE_TIME_STRING] = content.view_time
