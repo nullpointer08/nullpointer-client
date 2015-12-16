@@ -32,6 +32,7 @@ class MediaCleaner(object):
                 self.LOG.debug('Removing old media: %s' % media)
                 os.remove(media)
 
+
     def is_force_cleanup_required(self):
         statvfs = os.statvfs(self.media_folder)
         free_blocks = statvfs.f_bavail
@@ -59,7 +60,7 @@ class MediaCleaner(object):
         for media in stored_playlist:
             if media.content_type == 'web_page':
                 continue
-            media_filepath = self.playlist_parser.get_storage_filepath_for_media(media)
+            media_filepath = media.content_uri
             current_media_files.append(media_filepath)
         all_files = [os.path.join(self.media_folder, file) for file in os.listdir(self.media_folder)]
         unused_files = []

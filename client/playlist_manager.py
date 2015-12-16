@@ -56,8 +56,8 @@ class PlaylistManager(object):
             # or we start to download them the next time we download a playlist
             # this way if the playlist has changed we don't unnecessarily download old files
             return local_playlist
-        except Exception, e:
-            self.LOG.info('No locally stored playlist', e)
+        except:
+            self.LOG.info('No locally stored playlist')
             return []
 
     def fetch_remote_playlist_data(self):
