@@ -45,7 +45,7 @@ class ResumableFileDownload(object):
                 os.rename(self.incomplete_filepath, self.complete_filepath)
         raise Exception("Error renaming a complete file.")
 
-    def downloaded_bytes(self):
+    def bytes_downloaded(self):
         if os.path.isfile(self.incomplete_filepath):
             return os.path.getsize(self.incomplete_filepath)
         return 0
@@ -70,7 +70,8 @@ class ChunkedDownloader(object):
 
     # idea would be we download as much as we can and ResumableFileDownload handles file operations.
     # not ready. resumablefiledownload has not been changed yet.
-    def download(self, url):
+    def download(self, content):
+        url = content.content_uri
         headers = {}
         if urlparse(url).netloc == self.HISRA_NET_LOC:
             headers['Authorization'] = self.AUTHORIZATION_HEADER
@@ -80,17 +81,18 @@ class ChunkedDownloader(object):
             stream=True,
             headers=headers
         )
-        filename = re.findall("filename=(.+)", response.headers['Content-Disposition']).strip()
+        filename = re.findall("filename=(.+)", response.headers['Content-Disposition'])
+        filename = filename[0].strip() if len(filename) else ''
         md5 = response.headers['Content-MD5']
         resumable_download = ResumableFileDownload(url,filename,md5)
         if resumable_download.is_complete():
             response.close()
-            return resumable_download.filepath
-        downloaded_bytes = resumable_download.dowloaded_bytes()
-        if downloaded_bytes > 0:
+            return resumable_download.complete_filepath
+        bytes_downloaded = resumable_download.bytes_downloaded()
+        if bytes_downloaded > 0:
             response.close()
             # TODO +1 or not?
-            headers['Range'] = 'bytes=%s-' % downloaded_bytes+1
+            headers['Range'] = 'bytes=%s-' % bytes_downloaded
             response = requests.get(
             url,
             timeout=self.TIMEOUTS,
