@@ -38,7 +38,6 @@ class ResumableFileDownload(object):
     def stream_to_file(self, iter_function):
         with open(self.incomplete_filepath, 'ab') as f:
             for chunk in iter_function(chunk_size=1024):
-                if not chunk: break
                 f.write(chunk)
 
     def download_complete(self):
@@ -62,9 +61,6 @@ class ChunkedDownloader(object):
     '''
 
     LOG = logging.getLogger(__name__)
-    CHUNK_SIZE = 500000  # 500 Kb
-    CHUNK_DOWNLOAD_TIMEOUT = 120  # Seconds
-    RETRY_TIMEOUT = 10  # Seconds
     MEDIA_FOLDER = ""
 
     def __init__(self, server_url, device_id, media_folder):
