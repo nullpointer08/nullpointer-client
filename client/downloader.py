@@ -21,6 +21,7 @@ class ResumableFileDownload(object):
     the '.incomplete' file contains.
     '''
     MD5_STRING = "md5"
+    LOG = logging.getLogger(__name__)
 
     def __init__(self, url, filename, md5):
         self.url = url
@@ -40,7 +41,9 @@ class ResumableFileDownload(object):
 
     def download_complete(self):
         if os.path.isfile(self.incomplete_filepath):
+            self.LOG.debug("is a file")
             file_md5 = md5(self.incomplete_filepath)
+            self.LOG.debug("md5: %s", file_md5)
             if(file_md5 == md5):
                 os.rename(self.incomplete_filepath, self.complete_filepath)
         raise Exception("Error renaming a complete file.")
@@ -60,6 +63,7 @@ class ChunkedDownloader(object):
     CHUNK_SIZE = 500000  # 500 Kb
     CHUNK_DOWNLOAD_TIMEOUT = 120  # Seconds
     RETRY_TIMEOUT = 10  # Seconds
+    MEDIA_FOLDER = "";
 
     def __init__(self, server_url, device_id, media_folder):
         self.HISRA_NET_LOC = urlparse(server_url).netloc
