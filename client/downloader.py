@@ -37,7 +37,7 @@ class ResumableFileDownload(object):
 
     def stream_to_file(self, response):
         with open(self.incomplete_filepath, 'ab') as f:
-            for chunk in response.iter_function(chunk_size=1024):
+            for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
                     f.write(chunk)
         if(self.download_complete()):
