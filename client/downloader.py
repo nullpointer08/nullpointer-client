@@ -35,20 +35,21 @@ class ResumableFileDownload(object):
             return True
         return False
 
-    def stream_to_file(self, iter_function):
+    def stream_to_file(self, response):
         with open(self.incomplete_filepath, 'ab') as f:
-            for chunk in iter_function(chunk_size=1024):
+            for chunk in response.iter_function(chunk_size=1024):
                 if chunk:
                     f.write(chunk)
+        if(self.download_complete()):
+            os.rename(self.incomplete_filepath, self.complete_filepath)
+            return
+        else:
+            raise Exception("Rename failed")
+        raise("download did not complete.")
 
     def download_complete(self):
-        if os.path.isfile(self.incomplete_filepath):
-            self.LOG.debug("is a file")
-            file_md5 = md5(self.incomplete_filepath).hexdigest()
-            self.LOG.debug("md5: %s", file_md5)
-            #if(file_md5 == md5):
-            os.rename(self.incomplete_filepath, self.complete_filepath)
-        raise Exception("Error renaming a complete file.")
+        file_md5 = md5(self.incomplete_filepath).hexdigest()
+        return self.md5 == file_md5
 
     def bytes_downloaded(self):
         if os.path.isfile(self.incomplete_filepath):
@@ -102,8 +103,6 @@ class ChunkedDownloader(object):
             stream=True,
             headers=headers)
 
-        resumable_download.stream_to_file(response.iter_content)
-
-        resumable_download.download_complete()
+        resumable_download.stream_to_file(response)
 
         return resumable_download.complete_filepath
