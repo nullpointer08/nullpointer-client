@@ -23,9 +23,10 @@ class ResumableFileDownload(object):
     MD5_STRING = "md5"
     LOG = logging.getLogger(__name__)
 
-    def __init__(self, url, filename, md5):
+    def __init__(self, media_folder, url, filename, md5):
         self.url = url
-        self.complete_filepath = ChunkedDownloader.MEDIA_FOLDER + self.MD5_STRING + str(md5) + filename
+        filename =self.MD5_STRING + str(md5) + filename
+        self.complete_filepath = os.path.join(media_folder, filename)
         self.incomplete_filepath = self.complete_filepath + '.incomplete'
         self.md5 = md5
 
