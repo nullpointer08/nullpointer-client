@@ -6,6 +6,7 @@ import shutil
 from urlparse import urlparse
 import re
 from hashlib import md5
+import zlib
 
 class ResumableFileDownload(object):
     '''
@@ -36,18 +37,21 @@ class ResumableFileDownload(object):
         return False
 
     def stream_to_file(self, response):
-        with open(self.incomplete_filepath, 'ab') as f:
+        z = zlib.decompressobj()
+        with open(self.incomplete_filepath, 'wb') as f:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
-                    f.write(chunk)
-        if(self.download_complete()):
+                    buf = z.decompress(chunk)
+                    f.write(buf)
+                    
+        if(self.is_download_complete()):
             os.rename(self.incomplete_filepath, self.complete_filepath)
             return
         else:
             raise Exception("Rename failed")
         raise("download did not complete.")
 
-    def download_complete(self):
+    def is_download_complete(self):
         file_md5 = md5(self.incomplete_filepath).hexdigest()
         return self.md5 == file_md5
 
