@@ -48,6 +48,7 @@ class ResumableFileDownload(object):
             self.LOG.debug("md5: %s", file_md5)
             #if(file_md5 == md5):
             os.rename(self.incomplete_filepath, self.complete_filepath)
+            return
         raise Exception("Error renaming a complete file.")
 
     def bytes_downloaded(self):
