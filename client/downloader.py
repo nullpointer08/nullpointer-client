@@ -63,7 +63,7 @@ class ChunkedDownloader(object):
     CHUNK_SIZE = 500000  # 500 Kb
     CHUNK_DOWNLOAD_TIMEOUT = 120  # Seconds
     RETRY_TIMEOUT = 10  # Seconds
-    MEDIA_FOLDER = "";
+    MEDIA_FOLDER = ""
 
     def __init__(self, server_url, device_id, media_folder):
         self.HISRA_NET_LOC = urlparse(server_url).netloc

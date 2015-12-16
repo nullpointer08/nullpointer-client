@@ -39,7 +39,7 @@ class Client(object):
 
         # Run by AsynchExecutor
         def clean_old_files_and_get_new_playlist():
-            self.media_cleaner.clean_media()
+            #self.media_cleaner.clean_media()
             return self.pl_manager.fetch_playlist()
 
         # Called by AsynchExecutor when there was an error
@@ -51,7 +51,7 @@ class Client(object):
             while True:
                 if not self.executor.is_full():
                     self.executor.submit(
-                        self.pl_manager.fetch_playlist,
+                        clean_old_files_and_get_new_playlist,
                         on_success=self.schedule_playlist,
                         on_error=pl_fetch_error
                     )
