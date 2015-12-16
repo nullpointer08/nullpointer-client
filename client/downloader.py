@@ -6,7 +6,6 @@ import shutil
 from urlparse import urlparse
 import re
 from hashlib import md5
-import zlib
 
 class ResumableFileDownload(object):
     '''
@@ -36,27 +35,20 @@ class ResumableFileDownload(object):
             return True
         return False
 
-    def stream_to_file(self, response):
-        bytes_downloaded = self.bytes_downloaded()
+    def stream_to_file(self, iter_function):
         with open(self.incomplete_filepath, 'wb') as f:
-            f.seek(bytes_downloaded)
-            for chunk in response.iter_content(chunk_size=1024):
+            for chunk in iter_function(chunk_size=1024):
                 if chunk:
                     f.write(chunk)
 
-        if(self.is_download_complete()):
+    def download_complete(self):
+        if os.path.isfile(self.incomplete_filepath):
+            self.LOG.debug("is a file")
+            file_md5 = md5(self.incomplete_filepath).hexdigest()
+            self.LOG.debug("md5: %s", file_md5)
+            #if(file_md5 == md5):
             os.rename(self.incomplete_filepath, self.complete_filepath)
-            return
-        else:
-            raise Exception("Rename failed")
-        raise("download did not complete.")
-
-    def is_download_complete(self):
-        file_md5 = md5(self.incomplete_filepath).hexdigest()
-        return self.md5 == file_md5
-
-    def is_file_complete(self):
-        return os.path.isfile(self.complete_filepath)
+        raise Exception("Error renaming a complete file.")
 
     def bytes_downloaded(self):
         if os.path.isfile(self.incomplete_filepath):
@@ -96,7 +88,7 @@ class ChunkedDownloader(object):
         filename = filename[0].strip() if len(filename) else ''
         md5 = response.headers['Content-MD5']
         resumable_download = ResumableFileDownload(url,self.MEDIA_FOLDER,filename,md5)
-        if resumable_download.is_file_complete():
+        if resumable_download.is_complete():
             response.close()
             return resumable_download.complete_filepath
         bytes_downloaded = resumable_download.bytes_downloaded()
@@ -110,6 +102,8 @@ class ChunkedDownloader(object):
             stream=True,
             headers=headers)
 
-        resumable_download.stream_to_file(response)
+        resumable_download.stream_to_file(response.iter_content)
+
+        resumable_download.download_complete()
 
         return resumable_download.complete_filepath
