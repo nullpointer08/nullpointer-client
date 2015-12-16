@@ -44,19 +44,21 @@ class PlaylistManager(object):
 
         # Utility for downloading files
         self.downloader = ChunkedDownloader(self.PLAYLIST_URL, self.DEVICE_ID, self.MEDIA_FOLDER)
-
+        # Utility for parsing playlist JSON
+        self.playlist_parser = PlaylistJsonParser(
+            self.PLAYLIST_FILEPATH
+        )
     def fetch_local_playlist(self):
-        if os.path.isfile(self.PLAYLIST_FILEPATH):
-            with open(self.PLAYLIST_FILEPATH) as playlist_file:
-                local_playlist = playlist_file.read()
-            if local_playlist:
-                return self.parse_playlist(local_playlist)
-                # We do not download files here because it would defeat the purpose.
-                # We trust the files have either been downloaded
-                # or we start to download them the next time we download a playlist
-                # this way if the playlist has changed we don't unnecessarily download old files
-        self.LOG.debug('No stored playlist')
-        return []
+        try:
+            local_playlist = self.playlist_parser.get_stored_playlist()
+            # We do not download files here because it would defeat the purpose.
+            # We trust the files have either been downloaded
+            # or we start to download them the next time we download a playlist
+            # this way if the playlist has changed we don't unnecessarily download old files
+            return local_playlist
+        except Exception, e:
+            self.LOG.info('No locally stored playlist', e)
+            return []
 
     def fetch_remote_playlist_data(self):
         url = self.PLAYLIST_URL
@@ -89,7 +91,7 @@ class PlaylistManager(object):
         playlist = self.parse_playlist(pl_data)
         playlist_files_downloaded = self.download_playlist_files(playlist)
         if playlist_files_downloaded:
-            self.save_playlist_to_file(playlist)
+            self.playlist_parser.save_playlist_to_file(playlist)
             return playlist
         raise Exception("Files were not downloaded.")
 
@@ -108,18 +110,6 @@ class PlaylistManager(object):
         self.LOG.debug('Media schedule %s', media_schedule)
         return media_schedule
 
-    def save_playlist_to_file(self, playlist):
-        self.LOG.debug('Saving playlist to file')
-        json_playlist = list
-        for content in playlist:
-            json_content = dict();
-            json_content[PlaylistManager.SCHEDULE_TYPE_STRING] = content.content_type
-            json_content[PlaylistManager.SCHEDULE_URI_STRING] = content.content_uri
-            json_content[PlaylistManager.SCHEDULE_TIME_STRING] = content.view_time
-            json_playlist.append(json_content)
-        with open(self.PLAYLIST_FILEPATH, 'w') as pl_file:
-            pl_file.write(json.dumps(json_playlist))
-        self.LOG.debug("Playlist saved")
 
     def generate_viewer_playlist(self, playlist):
         viewer_pl = []
@@ -135,9 +125,50 @@ class PlaylistManager(object):
     # NOTE: Also sets content_uri to local uri
     def download_playlist_files(self, playlist):
         for content in playlist:
+            if content.content_type == 'web_page':
+                continue  # Web pages are not downloaded
             try:
                 content.content_uri = self.downloader.download(content)
             except Exception, e:
                 self.LOG.error('Failed to download content, %s %s', content, e)
                 return False
         return True
+
+
+class PlaylistJsonParser(object):
+    LOG = logging.getLogger(__name__)
+
+    def __init__(self, playlist_filepath):
+        self.PLAYLIST_FILEPATH = playlist_filepath
+
+    def parse_playlist_json(self, pl_json):
+        playlist = json.loads(pl_json)
+        return self.generate_viewer_playlist(playlist)
+
+    def get_stored_playlist(self):
+        with open(self.PLAYLIST_FILEPATH, 'r') as pl_file:
+            playlist_json = pl_file.read()
+        return self.parse_playlist_json(playlist_json)
+
+    def generate_viewer_playlist(self, playlist):
+        viewer_pl = []
+        for content in playlist:
+            content_type = content[PlaylistManager.SCHEDULE_TYPE_STRING]
+            content_uri = content[PlaylistManager.SCHEDULE_URI_STRING]
+            view_time = int(content[PlaylistManager.SCHEDULE_TIME_STRING])
+            media = Media(content_type, content_uri, view_time)
+            viewer_pl.append(media)
+        return viewer_pl
+
+    def save_playlist_to_file(self, playlist):
+        self.LOG.debug('Saving playlist to file')
+        json_playlist = list
+        for content in playlist:
+            json_content = dict();
+            json_content[PlaylistManager.SCHEDULE_TYPE_STRING] = content.content_type
+            json_content[PlaylistManager.SCHEDULE_URI_STRING] = content.content_uri
+            json_content[PlaylistManager.SCHEDULE_TIME_STRING] = content.view_time
+            json_playlist.append(json_content)
+        with open(self.PLAYLIST_FILEPATH, 'w') as pl_file:
+            pl_file.write(json.dumps(json_playlist))
+        self.LOG.debug("Playlist saved")
