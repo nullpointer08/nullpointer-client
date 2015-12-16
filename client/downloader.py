@@ -37,13 +37,13 @@ class ResumableFileDownload(object):
         return False
 
     def stream_to_file(self, response):
-        z = zlib.decompressobj()
+        bytes_downloaded = self.bytes_downloaded()
         with open(self.incomplete_filepath, 'wb') as f:
+            f.seek(bytes_downloaded)
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
-                    buf = z.decompress(chunk)
-                    f.write(buf)
-                    
+                    f.write(chunk)
+
         if(self.is_download_complete()):
             os.rename(self.incomplete_filepath, self.complete_filepath)
             return
@@ -54,6 +54,9 @@ class ResumableFileDownload(object):
     def is_download_complete(self):
         file_md5 = md5(self.incomplete_filepath).hexdigest()
         return self.md5 == file_md5
+
+    def is_file_complete(self):
+        return os.path.isfile(self.complete_filepath)
 
     def bytes_downloaded(self):
         if os.path.isfile(self.incomplete_filepath):
@@ -93,7 +96,7 @@ class ChunkedDownloader(object):
         filename = filename[0].strip() if len(filename) else ''
         md5 = response.headers['Content-MD5']
         resumable_download = ResumableFileDownload(url,self.MEDIA_FOLDER,filename,md5)
-        if resumable_download.is_complete():
+        if resumable_download.is_file_complete():
             response.close()
             return resumable_download.complete_filepath
         bytes_downloaded = resumable_download.bytes_downloaded()
