@@ -36,14 +36,15 @@ class ResumableFileDownload(object):
         return False
 
     def stream_to_file(self, iter_function):
-        with open(self.incomplete_filepath, 'wb') as f:
+        with open(self.incomplete_filepath, 'ab') as f:
             for chunk in iter_function(chunk_size=1024):
+                if not chunk: break
                 f.write(chunk)
 
     def download_complete(self):
         if os.path.isfile(self.incomplete_filepath):
             self.LOG.debug("is a file")
-            file_md5 = md5(self.incomplete_filepath)
+            file_md5 = md5(self.incomplete_filepath).hexdigest()
             self.LOG.debug("md5: %s", file_md5)
             if(file_md5 == md5):
                 os.rename(self.incomplete_filepath, self.complete_filepath)
