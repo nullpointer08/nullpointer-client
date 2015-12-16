@@ -17,7 +17,6 @@ class MediaCleaner(object):
         self.threshold_mb = config.get('Storage', 'cleanup_threshold_mb')
         self.media_folder = config.get('Storage', 'media_folder')
         self.playlist_parser = PlaylistJsonParser(
-            self.media_folder,
             playlist_filepath
         )
         self.LOG.debug('Initialized %s' % __name__)
