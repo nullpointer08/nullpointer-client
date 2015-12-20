@@ -5,7 +5,7 @@ import os
 import shutil
 from urlparse import urlparse
 import re
-from hashlib import md5
+from hashlib import md5 as md5sum
 
 class ResumableFileDownload(object):
     '''
@@ -23,12 +23,12 @@ class ResumableFileDownload(object):
     MD5_STRING = "md5"
     LOG = logging.getLogger(__name__)
 
-    def __init__(self, url, media_folder, filename, md5):
+    def __init__(self, url, media_folder, filename, expected_md5):
         self.url = url
-        filename =self.MD5_STRING + str(md5) + filename
+        filename =self.MD5_STRING + str(expected_md5) + filename
         self.complete_filepath = os.path.join(media_folder, filename)
         self.incomplete_filepath = self.complete_filepath + '.incomplete'
-        self.md5 = md5
+        self.expected_md5 = expected_md5
 
     def is_complete(self):
         if os.path.isfile(self.complete_filepath):
@@ -45,9 +45,10 @@ class ResumableFileDownload(object):
         if os.path.isfile(self.incomplete_filepath):
             self.LOG.debug("is a file")
             with open(self.incomplete_filepath) as f:
-                file_md5 = md5(f.read()).hexdigest()
+                file_md5 = md5sum(f.read()).hexdigest()
             self.LOG.debug("md5: %s", file_md5)
-            if(file_md5 == md5):
+            self.LOG.debug("comparing to md5: %s", self.expected_md5)
+            if(file_md5 == self.expected_md5):
                 os.rename(self.incomplete_filepath, self.complete_filepath)
                 return
         raise Exception("Error completing download.")
