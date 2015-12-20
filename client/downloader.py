@@ -44,12 +44,13 @@ class ResumableFileDownload(object):
     def download_complete(self):
         if os.path.isfile(self.incomplete_filepath):
             self.LOG.debug("is a file")
-            file_md5 = md5(self.incomplete_filepath).hexdigest()
+            with open(self.incomplete_filepath) as f:
+                file_md5 = md5(f.read()).hexdigest()
             self.LOG.debug("md5: %s", file_md5)
-            #if(file_md5 == md5):
-            os.rename(self.incomplete_filepath, self.complete_filepath)
-            return
-        raise Exception("Error renaming a complete file.")
+            if(file_md5 == md5):
+                os.rename(self.incomplete_filepath, self.complete_filepath)
+                return
+        raise Exception("Error completing download.")
 
     def bytes_downloaded(self):
         if os.path.isfile(self.incomplete_filepath):
