@@ -87,7 +87,7 @@ class ChunkedDownloader(object):
 
         filename = self.get_filename(response, url)
 
-        md5 = self.get_md5(response)
+        md5 = response.headers.get('Content-MD5')
         self.LOG.debug('HEADERS:')
         self.LOG.debug(response.headers)
         content_length = int(response.headers['Content-Length'])
@@ -131,12 +131,6 @@ class ChunkedDownloader(object):
             return filename[0].strip()
         else:
             return ChunkedDownloader.slugify(url)
-
-    @staticmethod
-    def get_md5(response):
-        if hasattr(response.headers, 'Content-MD5'):
-            return response.headers['Content-MD5']
-        return None
 
     @staticmethod
     def slugify(value):
