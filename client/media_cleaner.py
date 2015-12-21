@@ -24,8 +24,8 @@ class MediaCleaner(object):
         free_bytes = free_blocks* block_size
         self.LOG.debug('Free space in bytes: {0}'.format(free_bytes))
         self.LOG.debug('Content_length: {0} and cleanup threshold: {1}'
-                       .format(free_bytes, self.CLEANUP_THRESHOLD_BYTES))
-        if free_bytes < content_length + self.CLEANUP_THRESHOLD_BYTES:
+                       .format(content_length, self.CLEANUP_THRESHOLD_BYTES))
+        if free_bytes < (content_length + self.CLEANUP_THRESHOLD_BYTES):
             return False
         return True
 
