@@ -24,12 +24,13 @@ class ResumableFileDownload(object):
     MD5_STRING = "md5"
     LOG = logging.getLogger(__name__)
 
-    def __init__(self, url, media_folder, filename, expected_md5):
+    def __init__(self, url, media_folder, filename, expected_md5, expected_size):
         self.url = url
         filename =self.MD5_STRING + str(expected_md5) + filename
         self.complete_filepath = os.path.join(media_folder, filename)
         self.incomplete_filepath = self.complete_filepath + '.incomplete'
         self.expected_md5 = expected_md5
+        self.expected_size = expected_size
 
     def is_complete(self):
         if os.path.isfile(self.complete_filepath):
@@ -37,7 +38,7 @@ class ResumableFileDownload(object):
         return False
 
     def stream_to_file(self, iter_function):
-        with open(self.incomplete_filepath, 'wb') as f:
+        with open(self.incomplete_filepath, 'ab') as f:
             for chunk in iter_function(chunk_size=1024):
                 if chunk:
                     f.write(chunk)
@@ -94,15 +95,20 @@ class ChunkedDownloader(object):
         filename = re.findall("filename=(.+)", response.headers['Content-Disposition'])
         filename = filename[0].strip() if len(filename) else ''
         md5 = response.headers['Content-MD5']
-        resumable_download = ResumableFileDownload(url,self.MEDIA_FOLDER,filename,md5)
+        resumable_download = ResumableFileDownload(url, self.MEDIA_FOLDER, filename,
+                                                   md5, response.headers['Content-Length'])
         if resumable_download.is_complete():
             response.close()
             return resumable_download.complete_filepath
         bytes_downloaded = resumable_download.bytes_downloaded()
         if bytes_downloaded > 0:
             response.close()
+
+            self.LOG.debug('Resuming a download with range: %s-%s',
+                           bytes_downloaded,
+                           resumable_download.expected_size)
             # TODO +1 or not?
-            headers['Range'] = 'bytes=%s-' % bytes_downloaded
+            headers['Range'] = 'bytes=%s-%s' % bytes_downloaded, resumable_download.expected_size
             response = requests.get(
             url,
             timeout=self.TIMEOUTS,
