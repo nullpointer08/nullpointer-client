@@ -1,12 +1,14 @@
-import logging
-import requests
 import json
+import logging
 import os
-
 from ast import literal_eval
+
+import requests
+
 from display.media import Media
 from downloader import ChunkedDownloader
 from media_cleaner import MediaCleaner
+
 
 class PlaylistManager(object):
 

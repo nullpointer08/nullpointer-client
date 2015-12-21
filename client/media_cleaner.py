@@ -1,7 +1,5 @@
-import ConfigParser
-import os
-from playlist_manager import PlaylistJsonParser
 import logging
+import os
 from stat import ST_ATIME
 
 
