@@ -104,11 +104,10 @@ class ChunkedDownloader(object):
         if bytes_downloaded > 0:
             response.close()
 
-            self.LOG.debug('Resuming a download with range: %s-%s',
-                           bytes_downloaded,
-                           resumable_download.expected_size)
+            self.LOG.debug('Resuming a download with range: {0}-{1}'
+                           .format(bytes_downloaded, resumable_download.expected_size))
             # TODO +1 or not?
-            headers['Range'] = 'bytes=%s-%s' % bytes_downloaded, resumable_download.expected_size
+            headers['Range'] = 'bytes={0}-{1}'.format(bytes_downloaded, resumable_download.expected_size)
             response = requests.get(
             url,
             timeout=self.TIMEOUTS,
