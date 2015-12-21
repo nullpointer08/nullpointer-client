@@ -27,15 +27,15 @@ CONFIG_ITEMS = (
     },
     {
         'section': 'Storage',
-        'item': 'cleanup_time_h',
-        'description': 'Enter how long unused media files are kept (hours)',
-        'default': '24',
+        'item': 'cleanup_threshold_mb',
+        'description': 'Enter the number of megabytes for media to keep available',
+        'default': '1',
         'is_path': False
     },
     {
         'section': 'Storage',
-        'item': 'cleanup_threshold_mb',
-        'description': 'Enter the number of megabytes for media to keep available',
+        'item': 'cleanup_extra_space_to_free_up_mb',
+        'description': 'Amount of space to free up on top of download size and threshold.',
         'default': '100',
         'is_path': False
     },

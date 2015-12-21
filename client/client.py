@@ -15,7 +15,6 @@ class Client(object):
         self.pl_manager = PlaylistManager(config)
         self.POLL_TIME = config.getfloat('Client', 'playlist_poll_time')
         self.scheduler = Scheduler()
-        self.media_cleaner = MediaCleaner(config)
 
     def schedule_playlist(self, playlist):
         self.LOG.debug('Client scheduling playlist %s' % playlist)
@@ -38,8 +37,7 @@ class Client(object):
         self.schedule_playlist(playlist)
 
         # Run by AsynchExecutor
-        def clean_old_files_and_get_new_playlist():
-            #self.media_cleaner.clean_media()
+        def get_new_playlist_and_free_up_space_if_necessary():
             return self.pl_manager.fetch_playlist()
 
         # Called by AsynchExecutor when there was an error
@@ -51,7 +49,7 @@ class Client(object):
             while True:
                 if not self.executor.is_full():
                     self.executor.submit(
-                        clean_old_files_and_get_new_playlist,
+                        get_new_playlist_and_free_up_space_if_necessary,
                         on_success=self.schedule_playlist,
                         on_error=pl_fetch_error
                     )

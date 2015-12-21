@@ -6,8 +6,7 @@ import os
 from ast import literal_eval
 from display.media import Media
 from downloader import ChunkedDownloader
-from downloader import ResumableFileDownload
-
+from media_cleaner import MediaCleaner
 
 class PlaylistManager(object):
 
@@ -39,18 +38,22 @@ class PlaylistManager(object):
         if not os.path.exists(self.MEDIA_FOLDER):
             os.makedirs(self.MEDIA_FOLDER)
 
-        # Create empty playlist
-        #self.playlist = []
-
-        # Utility for downloading files
-        self.downloader = ChunkedDownloader(self.PLAYLIST_URL, self.DEVICE_ID, self.MEDIA_FOLDER)
         # Utility for parsing playlist JSON
-        self.playlist_parser = PlaylistJsonParser(
+        self.PLAYLIST_PARSER = PlaylistJsonParser(
             self.PLAYLIST_FILEPATH
         )
+
+        media_cleaner = MediaCleaner(config, self.PLAYLIST_PARSER)
+
+        # Utility for downloading files
+        self.downloader = ChunkedDownloader(self.PLAYLIST_URL,
+                                            self.DEVICE_ID,
+                                            self.MEDIA_FOLDER,
+                                            media_cleaner)
+
     def fetch_local_playlist(self):
         try:
-            local_playlist = self.playlist_parser.get_stored_playlist()
+            local_playlist = self.PLAYLIST_PARSER.get_stored_playlist()
             # We do not download files here because it would defeat the purpose.
             # We trust the files have either been downloaded
             # or we start to download them the next time we download a playlist
@@ -91,7 +94,7 @@ class PlaylistManager(object):
         playlist = self.parse_playlist(pl_data)
         playlist_files_downloaded = self.download_playlist_files(playlist)
         if playlist_files_downloaded:
-            self.playlist_parser.save_playlist_to_file(playlist)
+            self.PLAYLIST_PARSER.save_playlist_to_file(playlist)
             return playlist
         raise Exception("Files were not downloaded.")
 

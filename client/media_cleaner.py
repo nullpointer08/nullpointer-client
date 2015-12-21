@@ -1,9 +1,9 @@
 import ConfigParser
 import os
-import json
 from playlist_manager import PlaylistJsonParser
-import time
 import logging
+from stat import ST_ATIME
+
 
 class MediaCleaner(object):
     '''
@@ -11,66 +11,66 @@ class MediaCleaner(object):
     '''
     LOG = logging.getLogger(__name__)
 
-    def __init__(self, config):
+    def __init__(self, config, playlist_parser):
         playlist_filepath = config.get('Storage', 'playlist_file')
-        self.cleanup_time_h = config.get('Storage', 'cleanup_time_h')
-        self.threshold_mb = config.get('Storage', 'cleanup_threshold_mb')
-        self.media_folder = config.get('Storage', 'media_folder')
-        self.playlist_parser = PlaylistJsonParser(
-            playlist_filepath
-        )
+        threshold_mb = config.get('Storage', 'cleanup_threshold_mb')
+        self.CLEANUP_THRESHOLD_BYTES = threshold_mb * 1024 * 1024
+        self.EXTRA_SPACE_TO_FREE_UP = config.get('Storage', 'cleanup_extra_space_to_free_up_mb')
+        self.MEDIA_FOLDER = config.get('Storage', 'media_folder')
+        self.PLAYLIST_PARSER = playlist_parser
         self.LOG.debug('Initialized %s' % __name__)
 
-    def clean_media(self, force_clean_unused=False):
-        self.LOG.debug('Cleaning up old media (force_clean_unused=%s)' % force_clean_unused)
-        if self.is_cleanup_required():
-            force_clean_unused = True
-        unused_media = self.get_all_currently_unused_media()
-        for media in unused_media:
-            if force_clean_unused or self.is_media_old(media):
-                self.LOG.debug('Removing old media: %s' % media)
-                os.remove(media)
-
-
-    def is_force_cleanup_required(self):
-        statvfs = os.statvfs(self.media_folder)
+    def enough_space(self, content_length):
+        statvfs = os.statvfs(self.MEDIA_FOLDER)
         free_blocks = statvfs.f_bavail
         block_size = statvfs.f_frsize
         free_bytes = free_blocks* block_size
-        free_megs = free_bytes / 1000000
-        cleanup_required = free_megs <= self.threshold_mb
-        self.LOG.debug(
-            'Free megabytes: %s, cleanup_threshold_mb: %s, cleanup required: %s' %
-            (free_megs, self.threshold_mb, cleanup_required)
-        )
-        return cleanup_required
+        if free_bytes < content_length + self.CLEANUP_THRESHOLD_BYTES:
+            return False
+        return True
 
-    def is_media_old(self, media_filepath):
-        stat = os.stat(media_filepath)
-        media_age_h = ((time.time() - stat.st_mtime) / 3600)
-        self.LOG.debug('Age of %s: %s' % (media_filepath, media_age_h))
-        return media_age_h >= self.cleanup_time_h
+    def clean_media(self, content_length):
+        if not self.enough_space(content_length):
+            try:
+                self.run_cleanup()
+            except:
+                raise Exception('Freeing up disk space failed')
+
+    def run_cleanup(self, content_length):
+        self.LOG.debug('Cleaning up old media.')
+        unused_media = self.get_all_currently_unused_media()
+
+        for media in unused_media:
+            if not self.enough_space(content_length + self.EXTRA_SPACE_TO_FREE_UP):
+                self.LOG.debug('Removing old media: %s' % media)
+                os.remove(media)
+
+        if not self.enough_space(content_length):
+            raise Exception("Could not free up enough space")
 
     def get_all_currently_unused_media(self):
         current_media_files = []
-        stored_playlist = self.playlist_parser.get_stored_playlist()
-        if stored_playlist is None:
-            return []
-        for media in stored_playlist:
-            if media.content_type == 'web_page':
-                continue
-            media_filepath = media.content_uri
-            current_media_files.append(media_filepath)
-        all_files = [os.path.join(self.media_folder, file) for file in os.listdir(self.media_folder)]
+        stored_playlist = self.PLAYLIST_PARSER.get_stored_playlist()
+        if stored_playlist and len(stored_playlist):
+            for media in stored_playlist:
+                if media.content_type == 'web_page':
+                    continue
+                media_filepath = media.content_uri
+                current_media_files.append(media_filepath)
+        all_files = [os.path.join(self.MEDIA_FOLDER, file) for file in os.listdir(self.MEDIA_FOLDER)]
         unused_files = []
         for file in all_files:
             file = file.encode('UTF-8')
             if not file in current_media_files:
-                unused_files.append(file)
+                pair = (os.stat(file)[ST_ATIME], file)
+                unused_files.append(pair)
+
+        unused_files = sorted(unused_files)
+
         self.LOG.debug('Found unused media files: %s' % unused_files)
         return unused_files
 
-
+'''
 if __name__ == '__main__':
     START_PATH = os.path.dirname(os.path.realpath(__file__))
     CONFIG_PATH = os.path.join(START_PATH, 'client.properties')
@@ -78,4 +78,5 @@ if __name__ == '__main__':
     with open(CONFIG_PATH) as config_fp:
         config.readfp(config_fp)
     cleaner = MediaCleaner(config)
-    cleaner.clean_media(True)
+    cleaner.clean_media()
+'''
