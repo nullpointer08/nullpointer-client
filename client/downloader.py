@@ -90,7 +90,7 @@ class ChunkedDownloader(object):
         md5 = self.get_md5(response)
         self.LOG.debug('HEADERS:')
         self.LOG.debug(response.headers)
-        content_length = response.headers['Content-Length']
+        content_length = int(response.headers['Content-Length'])
         self.LOG.debug(content_length)
         if content_length is None:
             raise("Response from {0} had no content-length. Download aborted.".format(url))

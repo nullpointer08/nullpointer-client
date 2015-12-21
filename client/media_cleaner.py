@@ -11,8 +11,8 @@ class MediaCleaner(object):
 
     def __init__(self, config, playlist_parser):
         threshold_mb = config.get('Storage', 'cleanup_threshold_mb')
-        self.CLEANUP_THRESHOLD_BYTES = threshold_mb * 1024 * 1024
-        self.EXTRA_SPACE_TO_FREE_UP = config.get('Storage', 'cleanup_extra_space_to_free_up_mb')
+        self.CLEANUP_THRESHOLD_BYTES = int(threshold_mb) * 1024 * 1024
+        self.EXTRA_SPACE_TO_FREE_UP = int(config.get('Storage', 'cleanup_extra_space_to_free_up_mb'))
         self.MEDIA_FOLDER = config.get('Storage', 'media_folder')
         self.PLAYLIST_PARSER = playlist_parser
         self.LOG.debug('Initialized %s' % __name__)
