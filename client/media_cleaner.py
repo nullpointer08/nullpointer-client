@@ -31,7 +31,7 @@ class MediaCleaner(object):
 
     def clean_media(self, content_length):
         if not self.enough_space(content_length):
-                self.run_cleanup(content_length)
+            self.run_cleanup(content_length)
 
     def run_cleanup(self, content_length):
         self.LOG.debug('Cleaning up old media.')
