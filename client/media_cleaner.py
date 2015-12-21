@@ -22,9 +22,8 @@ class MediaCleaner(object):
         free_blocks = statvfs.f_bavail
         block_size = statvfs.f_frsize
         free_bytes = free_blocks* block_size
-        self.LOG.debug('Free space in bytes: {0}'.format(free_bytes))
-        self.LOG.debug('Content_length: {0} and cleanup threshold: {1}'
-                       .format(content_length, self.CLEANUP_THRESHOLD_BYTES))
+        self.LOG.debug('Free space in bytes: %s',free_bytes)
+        self.LOG.debug('Content_length: %s and cleanup threshold: %s', content_length, self.CLEANUP_THRESHOLD_BYTES)
         if free_bytes < (content_length + self.CLEANUP_THRESHOLD_BYTES):
             return False
         return True
@@ -39,7 +38,7 @@ class MediaCleaner(object):
 
         for media in unused_media:
             if not self.enough_space(content_length + self.EXTRA_SPACE_TO_FREE_UP):
-                self.LOG.debug('Removing old media: %s' % media)
+                self.LOG.debug('Removing old media: %s', media)
                 os.remove(media)
 
         if not self.enough_space(content_length):

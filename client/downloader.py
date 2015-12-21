@@ -93,7 +93,7 @@ class ChunkedDownloader(object):
         content_length = int(response.headers['Content-Length'])
         self.LOG.debug(content_length)
         if content_length is None:
-            raise("Response from {0} had no content-length. Download aborted.".format(url))
+            raise("Response from %s had no content-length. Download aborted." % url)
 
         self.MEDIA_CLEANER.clean_media(content_length)
 
@@ -107,8 +107,7 @@ class ChunkedDownloader(object):
         bytes_downloaded = resumable_download.bytes_downloaded()
         if bytes_downloaded > 0:
             response.close()
-            self.LOG.debug('Resuming a download with range: {0}-{1}'
-                           .format(bytes_downloaded, resumable_download.expected_size))
+            self.LOG.debug('Resuming a download with range: %s-%s', bytes_downloaded, resumable_download.expected_size)
 
             headers['Range'] = 'bytes={0}-{1}'.format(bytes_downloaded, resumable_download.expected_size)
             response = requests.get(url=url,
