@@ -40,6 +40,15 @@ LOGGING_CONFIG = {
             'backupCount': 2,
             'encoding': 'utf8'
         },
+        'client_debug': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'DEBUG',
+            'formatter': 'simple',
+            'filename': os.path.join(START_PATH, 'display_debug.log'),
+            'maxBytes': 1024*1024,  # 1MB
+            'backupCount': 2,
+            'encoding': 'utf8'
+        },
         'errors': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'ERROR',
@@ -52,7 +61,7 @@ LOGGING_CONFIG = {
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'errors'],
+            'handlers': ['errors'],
             'level': 'ERROR',
         },
         'client': {
@@ -60,7 +69,7 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
         },
         'display': {
-            'handlers': ['client_debug'],
+            'handlers': ['display_debug'],
             'level': 'DEBUG',
         },
 

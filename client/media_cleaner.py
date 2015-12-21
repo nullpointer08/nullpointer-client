@@ -10,7 +10,6 @@ class MediaCleaner(object):
     LOG = logging.getLogger(__name__)
 
     def __init__(self, config, playlist_parser):
-        playlist_filepath = config.get('Storage', 'playlist_file')
         threshold_mb = config.get('Storage', 'cleanup_threshold_mb')
         self.CLEANUP_THRESHOLD_BYTES = threshold_mb * 1024 * 1024
         self.EXTRA_SPACE_TO_FREE_UP = config.get('Storage', 'cleanup_extra_space_to_free_up_mb')
@@ -23,6 +22,9 @@ class MediaCleaner(object):
         free_blocks = statvfs.f_bavail
         block_size = statvfs.f_frsize
         free_bytes = free_blocks* block_size
+        self.LOG.debug('Free space in bytes: {0}'.format(free_bytes))
+        self.LOG.debug('Content_length: {0} and cleanup threshold: {1}'
+                       .format(free_bytes, self.CLEANUP_THRESHOLD_BYTES))
         if free_bytes < content_length + self.CLEANUP_THRESHOLD_BYTES:
             return False
         return True
