@@ -7,6 +7,7 @@ from urlparse import urlparse
 import re
 from hashlib import md5 as md5sum
 
+
 class ResumableFileDownload(object):
     '''
     A utility class which downloads the data from the given url to the
@@ -87,6 +88,9 @@ class ChunkedDownloader(object):
             stream=True,
             headers=headers
         )
+        if(response.status_code != 200):
+            raise Exception("Expected 200 response got: %s", response.status_code)
+
         filename = re.findall("filename=(.+)", response.headers['Content-Disposition'])
         filename = filename[0].strip() if len(filename) else ''
         md5 = response.headers['Content-MD5']
@@ -104,6 +108,8 @@ class ChunkedDownloader(object):
             timeout=self.TIMEOUTS,
             stream=True,
             headers=headers)
+            if response.status_code != 206:
+                raise Exception("Requested a range(206) but got: %s", response.status_code)
 
         resumable_download.stream_to_file(response.iter_content)
 
