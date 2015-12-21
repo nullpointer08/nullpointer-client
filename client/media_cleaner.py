@@ -10,9 +10,10 @@ class MediaCleaner(object):
     LOG = logging.getLogger(__name__)
 
     def __init__(self, config, playlist_parser):
-        threshold_mb = config.get('Storage', 'cleanup_threshold_mb')
-        self.CLEANUP_THRESHOLD_BYTES = int(threshold_mb) * 1024 * 1024
-        self.EXTRA_SPACE_TO_FREE_UP = int(config.get('Storage', 'cleanup_extra_space_to_free_up_mb'))
+        threshold_mb = int(config.get('Storage', 'cleanup_threshold_mb'))
+        self.CLEANUP_THRESHOLD_BYTES = threshold_mb * 1000 * 1000
+        extra_space = int(config.get('Storage', 'cleanup_extra_space_to_free_up_mb'))
+        self.EXTRA_SPACE_TO_FREE_UP_BYTES = extra_space * 1000 * 1000
         self.MEDIA_FOLDER = config.get('Storage', 'media_folder')
         self.PLAYLIST_PARSER = playlist_parser
         self.LOG.debug('Initialized %s' % __name__)
@@ -37,9 +38,10 @@ class MediaCleaner(object):
         unused_media = self.get_all_currently_unused_media()
 
         for media in unused_media:
-            if not self.enough_space(content_length + self.EXTRA_SPACE_TO_FREE_UP):
-                self.LOG.debug('Removing old media: %s', media[1])
-                os.remove(media[1])
+            if self.enough_space(content_length + self.EXTRA_SPACE_TO_FREE_UP_BYTES):
+                break
+            self.LOG.debug('Removing old media: %s', media[1])
+            os.remove(media[1])
 
         if not self.enough_space(content_length):
             raise Exception("Could not free up enough space")
