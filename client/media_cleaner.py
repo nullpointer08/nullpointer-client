@@ -29,10 +29,7 @@ class MediaCleaner(object):
 
     def clean_media(self, content_length):
         if not self.enough_space(content_length):
-            try:
                 self.run_cleanup()
-            except:
-                raise Exception('Freeing up disk space failed')
 
     def run_cleanup(self, content_length):
         self.LOG.debug('Cleaning up old media.')
