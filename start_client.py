@@ -40,7 +40,7 @@ LOGGING_CONFIG = {
             'backupCount': 2,
             'encoding': 'utf8'
         },
-        'client_debug': {
+        'display_debug': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
             'formatter': 'simple',
@@ -61,7 +61,7 @@ LOGGING_CONFIG = {
     },
     'loggers': {
         '': {
-            'handlers': ['errors'],
+            'handlers': ['console', 'errors'],
             'level': 'ERROR',
         },
         'client': {
