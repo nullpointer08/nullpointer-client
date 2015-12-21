@@ -38,8 +38,8 @@ class MediaCleaner(object):
 
         for media in unused_media:
             if not self.enough_space(content_length + self.EXTRA_SPACE_TO_FREE_UP):
-                self.LOG.debug('Removing old media: %s', media)
-                os.remove(media)
+                self.LOG.debug('Removing old media: %s', media[1])
+                os.remove(media[1])
 
         if not self.enough_space(content_length):
             raise Exception("Could not free up enough space")
