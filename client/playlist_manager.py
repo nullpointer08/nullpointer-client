@@ -15,8 +15,9 @@ class PlaylistManager(object):
     LOG = logging.getLogger(__name__)
     SCHEDULE_NAME_STRING = 'media_schedule_json'
     SCHEDULE_TIME_STRING = 'time'
-    SCHEDULE_TYPE_STRING = 'type'
-    SCHEDULE_URI_STRING = 'uri'
+    SCHEDULE_TYPE_STRING = 'media_type'
+    SCHEDULE_URI_STRING = 'url'
+    SCHEDULE_MEDIA_URL = 'media_url'
 
     def __init__(self, config):
         # Device ID
@@ -94,7 +95,7 @@ class PlaylistManager(object):
             raise Exception("No playlist data received from server.")
 
         playlist = self.parse_playlist(pl_data)
-        playlist_files_downloaded = self.download_playlist_files(playlist)
+        playlist_files_downloaded = self.download_playlist_files(playlist, pl_data[PlaylistManager.SCHEDULE_MEDIA_URL])
         if playlist_files_downloaded:
             self.PLAYLIST_PARSER.save_playlist_to_file(playlist)
             return playlist
@@ -115,7 +116,6 @@ class PlaylistManager(object):
         self.LOG.debug('Media schedule %s', media_schedule)
         return media_schedule
 
-
     def generate_viewer_playlist(self, playlist):
         viewer_pl = []
         for content in playlist:
@@ -128,7 +128,8 @@ class PlaylistManager(object):
         return viewer_pl
 
     # NOTE: Also sets content_uri to local uri
-    def download_playlist_files(self, playlist):
+    def download_playlist_files(self, playlist, own_server_media_url):
+        self.downloader.set_hisra_net_loc(own_server_media_url)
         for content in playlist:
             if content.content_type == 'web_page':
                 continue  # Web pages are not downloaded

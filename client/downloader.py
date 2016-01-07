@@ -68,8 +68,12 @@ class ChunkedDownloader(object):
         self.TIMEOUTS = (None, 60)
         self.MEDIA_CLEANER = media_cleaner
 
-    def download(self, content):
+    def set_hisra_net_loc(self, server_media_url):
+        netloc = urlparse(server_media_url).netloc
+        if netloc:
+            self.HISRA_NET_LOC = netloc
 
+    def download(self, content):
         url = content.content_uri
         headers = {}
         if urlparse(url).netloc == self.HISRA_NET_LOC:
