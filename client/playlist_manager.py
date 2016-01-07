@@ -94,8 +94,8 @@ class PlaylistManager(object):
         if pl_data is None:
             raise Exception("No playlist data received from server.")
 
-        playlist = self.parse_playlist(pl_data)
-        playlist_files_downloaded = self.download_playlist_files(playlist, pl_data[PlaylistManager.SCHEDULE_MEDIA_URL])
+        media_url, playlist = self.parse_playlist(pl_data)
+        playlist_files_downloaded = self.download_playlist_files(playlist, media_url)
         if playlist_files_downloaded:
             self.PLAYLIST_PARSER.save_playlist_to_file(playlist)
             return playlist
@@ -111,10 +111,11 @@ class PlaylistManager(object):
             raise
 
         self.LOG.debug('Playlist fetched %s', playlist_dl)
+        media_url = playlist_dl[PlaylistManager.SCHEDULE_MEDIA_URL]
         media_schedule = literal_eval(playlist_dl[PlaylistManager.SCHEDULE_NAME_STRING])
         media_schedule = self.generate_viewer_playlist(media_schedule)
         self.LOG.debug('Media schedule %s', media_schedule)
-        return media_schedule
+        return media_url, media_schedule
 
     def generate_viewer_playlist(self, playlist):
         viewer_pl = []
