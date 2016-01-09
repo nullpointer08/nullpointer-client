@@ -6,9 +6,9 @@ class Media(object):
     '''
 
     # Media types
-    VIDEO = 'video'
-    IMAGE = 'image'
-    WEB_PAGE = 'web_page'
+    VIDEO = 'V'
+    IMAGE = 'I'
+    WEB_PAGE = 'W'
 
     def __init__(self, content_type, content_uri, view_time):
         self.content_type = content_type
