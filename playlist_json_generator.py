@@ -1,4 +1,6 @@
 import json
+from display.media import Media
+from client.playlist_manager import PlaylistManager
 
 QUIT_STRING = '\\q'
 playlist = []
@@ -35,15 +37,15 @@ def read_media():
         return None
 
     content_url = read_input('Content URL: ')
-    content_type = read_input('Content type (web_page/image/video): ')
-    valid_types = ('web_page', 'image', 'video')
+    content_type = read_input('Content type (' + ','.join(Media.VALID_TYPES) + '): ')
+    valid_types = Media.VALID_TYPES
     if content_type not in valid_types:
         print 'Content type must be one of: %s, %s, %s' % valid_types
         return None
     media = {
-        'time': display_time,
-        'uri': content_url,
-        'type': content_type
+        PlaylistManager.SCHEDULE_TIME_STRING: display_time,
+        PlaylistManager.SCHEDULE_URI_STRING: content_url,
+        PlaylistManager.SCHEDULE_TYPE_STRING: content_type
     }
     return media
 

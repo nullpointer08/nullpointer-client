@@ -132,7 +132,7 @@ class PlaylistManager(object):
     def download_playlist_files(self, playlist, own_server_media_url):
         self.downloader.set_hisra_net_loc(own_server_media_url)
         for content in playlist:
-            if content.content_type == 'web_page':
+            if content.content_type == Media.WEB_PAGE:
                 continue  # Web pages are not downloaded
             try:
                 content.content_uri = self.downloader.download(content)

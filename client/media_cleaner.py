@@ -1,7 +1,7 @@
 import logging
 import os
 from stat import ST_ATIME
-
+from display.media import Media
 
 class MediaCleaner(object):
     '''
@@ -51,7 +51,7 @@ class MediaCleaner(object):
         stored_playlist = self.PLAYLIST_PARSER.get_stored_playlist()
         if stored_playlist and len(stored_playlist):
             for media in stored_playlist:
-                if media.content_type == 'web_page':
+                if media.content_type == Media.WEB_PAGE:
                     continue
                 media_filepath = media.content_uri
                 current_media_files.append(media_filepath)

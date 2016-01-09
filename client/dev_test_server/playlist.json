@@ -1,7 +1,0 @@
-{
-    "id": 3,
-    "owner": 1,
-    "name": "testiplaylist",
-    "description": "testaus",
-    "media_schedule_json": "[{u'time': 60, u'uri': u'http://bbc.co.uk', u'type': u'web_page'}, {u'time': 60, u'uri': u'https://i1.wp.com/fwallpapers.com/files/images/mars-surface.jpg', u'type': u'image'}, {u'time': 10, u'uri': u'http://techslides.com/demos/sample-videos/small.mp4', u'type': u'video'}]"
-}
