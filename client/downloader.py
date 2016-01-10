@@ -77,7 +77,7 @@ class ChunkedDownloader(object):
     def download(self, content):
         url = content.content_uri
         headers = {}
-        # headers['Content-Type'] = Media.VALID_CONTENT_TYPES[content.content_type]
+        headers['Content-Type'] = Media.VALID_CONTENT_TYPES[content.content_type]
         if urlparse(url).netloc == self.HISRA_NET_LOC:
             headers['Authorization'] = self.AUTHORIZATION_HEADER
 
@@ -99,7 +99,7 @@ class ChunkedDownloader(object):
         content_length = int(response.headers['Content-Length'])
         self.LOG.debug(content_length)
         if content_length is None:
-            raise("Response from %s had no content-length. Download aborted." % url)
+            raise Exception("Response from {0} had no content-length. Download aborted.".format(url))
 
         self.MEDIA_CLEANER.clean_media(content_length)
 
@@ -131,11 +131,11 @@ class ChunkedDownloader(object):
 
     @staticmethod
     def get_filename(response, url):
-        filename = None
-        if hasattr(response.headers, 'Content-Disposition'):
-            filename = re.findall("filename=(.+)", response.headers['Content-Disposition'])
+        filename = response.headers.get('Content-Disposition')
         if filename:
-            return filename[0].strip()
+            filename = re.findall("filename=(.+)", response.headers['Content-Disposition'])
+            if filename:
+                return filename[0].strip()
         else:
             return ChunkedDownloader.slugify(url)
 

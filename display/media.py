@@ -10,6 +10,7 @@ class Media(object):
     IMAGE = 'I'
     WEB_PAGE = 'W'
     VALID_TYPES = [VIDEO,IMAGE,WEB_PAGE]
+    VALID_CONTENT_TYPES = {VIDEO:'video/*', IMAGE:'image/*'}
 
     def __init__(self, content_type, content_uri, view_time):
         self.content_type = content_type
