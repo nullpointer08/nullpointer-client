@@ -59,5 +59,6 @@ class Scheduler(object):
         self._playlist_lock.acquire()
         try:
             modifier_function(self._playlist)
+            self.viewer.interrupt()
         finally:
             self._playlist_lock.release()
