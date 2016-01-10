@@ -23,12 +23,6 @@ class Viewer(object):
         Media.WEB_PAGE: BROWSER,
         Media.VIDEO: PLAYER
     }
-    
-    def __init__(self):
-        self.interrupted = False
-    
-    def interrupt(self):
-        self.interrupted = True
 
     def display_content(self, content):
         self.logger = logging.getLogger(__name__)
@@ -40,9 +34,6 @@ class Viewer(object):
         self.running = True
 
         while self.running and displayed_time < content.view_time:
-            if self.interrupted:
-                self.interrupted = False #  Consume the interrupt
-                break
             time.sleep(self.DISPLAY_TIME_GRANULARITY)
             displayed_time += self.DISPLAY_TIME_GRANULARITY
             self.keep_alive(viewer, content)
