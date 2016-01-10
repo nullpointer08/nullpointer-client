@@ -57,7 +57,7 @@ CONFIG_ITEMS = (
         'section': 'Server',
         'item': 'playlist_url',
         'description': 'Enter the URL to fetch playlists from.',
-        'default': 'http://drajala.ddns.net:8000/api/device/{device_id}/playlist',
+        'default': 'http://drajala.ddns.net:8000/api/device/playlist',
         'is_path': False
     }
 )
