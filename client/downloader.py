@@ -131,6 +131,7 @@ class ChunkedDownloader(object):
 
     @staticmethod
     def get_filename(response, url):
+        filename = None
         if hasattr(response.headers, 'Content-Disposition'):
             filename = re.findall("filename=(.+)", response.headers['Content-Disposition'])
         if filename:
