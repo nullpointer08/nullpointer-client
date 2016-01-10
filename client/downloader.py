@@ -141,6 +141,7 @@ class ChunkedDownloader(object):
 
     @staticmethod
     def slugify(value):
+        value = unicode(value)
         """
         Convert to ASCII. Convert spaces to hyphens.
         Remove characters that aren't alphanumerics, underscores, or hyphens.
