@@ -5,6 +5,7 @@ from urlparse import urlparse
 import re
 import unicodedata
 from hashlib import md5 as md5sum
+from display.media import Media
 
 
 class ResumableFileDownload(object):
@@ -76,6 +77,7 @@ class ChunkedDownloader(object):
     def download(self, content):
         url = content.content_uri
         headers = {}
+        # headers['Content-Type'] = Media.VALID_CONTENT_TYPES[content.content_type]
         if urlparse(url).netloc == self.HISRA_NET_LOC:
             headers['Authorization'] = self.AUTHORIZATION_HEADER
 
@@ -129,8 +131,9 @@ class ChunkedDownloader(object):
 
     @staticmethod
     def get_filename(response, url):
-        filename = re.findall("filename=(.+)", response.headers['Content-Disposition'])
-        if filename and len(filename):
+        if hasattr(response.headers, 'Content-Disposition'):
+            filename = re.findall("filename=(.+)", response.headers['Content-Disposition'])
+        if filename:
             return filename[0].strip()
         else:
             return ChunkedDownloader.slugify(url)
