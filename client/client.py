@@ -4,6 +4,7 @@ import time
 from playlist_manager import PlaylistManager
 from display.scheduler import Scheduler
 from media_cleaner import MediaCleaner
+from status import StatusMonitor
 
 
 class Client(object):
@@ -12,7 +13,12 @@ class Client(object):
 
     def __init__(self, config):
         self.executor = AsynchExecutor(2)
-        self.pl_manager = PlaylistManager(config)
+        self.status_monitor = StatusMonitor(
+            'http://drajala.ddns.net:8000/api/status',
+            'http://drajala.ddns.net:8000/api/device/confirmedplaylist',
+            'dev1'
+        )
+        self.pl_manager = PlaylistManager(config, self.status_monitor)
         self.POLL_TIME = config.getfloat('Client', 'playlist_poll_time')
         self.scheduler = Scheduler()
 
@@ -29,6 +35,7 @@ class Client(object):
         self.scheduler.modify_playlist_atomically(replace_playlist)
         if not self.scheduler.running:
             self.scheduler.start()
+        self.status_monitor.submit_collected_events()
 
     def start(self):
         # Get the first playlist from file. If there is no ready playlist,

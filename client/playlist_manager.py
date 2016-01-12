@@ -8,6 +8,7 @@ import requests
 from display.media import Media
 from downloader import ChunkedDownloader
 from media_cleaner import MediaCleaner
+from status import StatusMonitor
 
 
 class PlaylistManager(object):
@@ -18,8 +19,10 @@ class PlaylistManager(object):
     SCHEDULE_TYPE_STRING = 'media_type'
     SCHEDULE_URI_STRING = 'url'
     SCHEDULE_MEDIA_URL = 'media_url'
+    PLAYLIST_ID = 'id'
 
-    def __init__(self, config):
+    def __init__(self, config, status_monitor):
+        self.status_monitor = status_monitor
         # Device ID
         device_id_file = open(config.get('Device', 'device_id_file'), 'r')
         self.DEVICE_ID = device_id_file.read().strip()
@@ -86,6 +89,11 @@ class PlaylistManager(object):
 
         except Exception, e:
             self.LOG.error('Could not fetch playlist %s, %s' % (url, e))
+            self.status_monitor.add_status(
+                StatusMonitor.ERROR,
+                StatusMonitor.Categories.CONNECTION,
+                'Connection failed when fetching playlist'    
+            )
             #re-raise error so our async executor knows to not set this as a playlist.
             raise
 
@@ -94,10 +102,11 @@ class PlaylistManager(object):
         if pl_data is None:
             raise Exception("No playlist data received from server.")
 
-        media_url, playlist = self.parse_playlist(pl_data)
+        media_url, playlist, playlist_id = self.parse_playlist(pl_data)
         playlist_files_downloaded = self.download_playlist_files(playlist, media_url)
         if playlist_files_downloaded:
             self.PLAYLIST_PARSER.save_playlist_to_file(playlist)
+            self.status_monitor.confirm_new_playlist(playlist_id)
             return playlist
         raise Exception("Files were not downloaded.")
 
@@ -111,11 +120,12 @@ class PlaylistManager(object):
             raise
 
         self.LOG.debug('Playlist fetched %s', playlist_dl)
+        playlist_id = playlist_dl[PlaylistManager.PLAYLIST_ID]
         media_url = playlist_dl[PlaylistManager.SCHEDULE_MEDIA_URL]
         media_schedule = literal_eval(playlist_dl[PlaylistManager.SCHEDULE_NAME_STRING])
         media_schedule = self.generate_viewer_playlist(media_schedule)
         self.LOG.debug('Media schedule %s', media_schedule)
-        return media_url, media_schedule
+        return media_url, media_schedule, playlist_id
 
     def generate_viewer_playlist(self, playlist):
         viewer_pl = []
