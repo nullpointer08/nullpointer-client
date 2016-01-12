@@ -21,6 +21,7 @@ APT_REQS = (
 
 PIP_REQS = (
     'sh==1.11',
+    'requests'
 )
 
 DEVNULL = open(os.devnull, 'wb')

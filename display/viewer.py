@@ -24,7 +24,7 @@ class Viewer(object):
         Media.VIDEO: PLAYER
     }
 
-    def display_content(self, content):
+    def display_content(self, content, is_interrupted_func):
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Viewer received content %s', content)
         viewer = self.VIEWERS[content.content_type]
@@ -34,6 +34,8 @@ class Viewer(object):
         self.running = True
 
         while self.running and displayed_time < content.view_time:
+            if is_interrupted_func(content):
+                break
             time.sleep(self.DISPLAY_TIME_GRANULARITY)
             displayed_time += self.DISPLAY_TIME_GRANULARITY
             self.keep_alive(viewer, content)

@@ -24,6 +24,9 @@ class Scheduler(object):
         self.logger.debug('Starting scheduling')
         self.running = True
 
+        def is_interrupted_func(content):
+            return content not in self._playlist
+
         def schedule_worker(scheduler):
             self.logger.debug('Scheduling thread started')
             index = 0
@@ -37,7 +40,7 @@ class Scheduler(object):
                 finally:
                     lock.release()
                 self.logger.debug('Scheduler began displaying %s', content)
-                scheduler.viewer.display_content(content)
+                scheduler.viewer.display_content(content, is_interrupted_func)
                 index += 1
             scheduler.viewer.shutdown()
             self.logger.debug('Exiting scheduler worker thread')
