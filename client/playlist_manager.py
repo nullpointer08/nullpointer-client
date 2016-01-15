@@ -91,7 +91,7 @@ class PlaylistManager(object):
             if response.status_code == 200:
                 self.LOG.debug('Fetched data: %s' % response.content)
                 return response.content
-            raise Exception('Wrong status from server while fetching playlist: %s', response.status_code)
+            raise Exception('Wrong status from server while fetching playlist: %s' % response.status_code)
 
         except Exception, e:
             self.LOG.error('Could not fetch playlist %s, %s' % (url, e))
