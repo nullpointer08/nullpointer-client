@@ -8,8 +8,6 @@ import requests
 from display.media import Media
 from downloader import ChunkedDownloader
 from media_cleaner import MediaCleaner
-from status import StatusMonitor
-
 
 class PlaylistManager(object):
 
@@ -21,8 +19,7 @@ class PlaylistManager(object):
     SCHEDULE_MEDIA_URL = 'media_url'
     PLAYLIST_ID = 'id'
 
-    def __init__(self, config, status_monitor):
-        self.status_monitor = status_monitor
+    def __init__(self, config):
         # Device ID
         device_id_file = open(config.get('Device', 'device_id_file'), 'r')
         self.DEVICE_ID = device_id_file.read().strip()
@@ -48,6 +45,13 @@ class PlaylistManager(object):
         self.PLAYLIST_PARSER = PlaylistJsonParser(
             self.PLAYLIST_FILEPATH
         )
+        playlist_bytes_timeout =  int(config.get('Client', 'playlist_bytes_timeout'))
+        if playlist_bytes_timeout == 0:
+            playlist_bytes_timeout = None
+        playlist_connection_timeout = int(config.get('Client', 'playlist_connection_timeout'))
+        if playlist_connection_timeout == 0:
+            playlist_connection_timeout = None
+        self.PLAYLIST_TIMEOUTS = (playlist_bytes_timeout, playlist_connection_timeout)
 
         media_cleaner = MediaCleaner(config, self.PLAYLIST_PARSER)
 
@@ -55,6 +59,7 @@ class PlaylistManager(object):
         self.downloader = ChunkedDownloader(self.PLAYLIST_URL,
                                             self.DEVICE_ID,
                                             self.MEDIA_FOLDER,
+                                            self.PLAYLIST_TIMEOUTS,
                                             media_cleaner)
 
     def fetch_local_playlist(self):
@@ -78,7 +83,7 @@ class PlaylistManager(object):
         try:
             response = requests.get(
                 url,
-                timeout=(None, 60),
+                timeout=(60, 60),
                 stream=False,
                 headers=headers)
 
@@ -89,11 +94,6 @@ class PlaylistManager(object):
 
         except Exception, e:
             self.LOG.error('Could not fetch playlist %s, %s' % (url, e))
-            self.status_monitor.add_status(
-                StatusMonitor.ERROR,
-                StatusMonitor.Categories.CONNECTION,
-                'Connection failed when fetching playlist'    
-            )
             #re-raise error so our async executor knows to not set this as a playlist.
             raise
 
@@ -103,12 +103,9 @@ class PlaylistManager(object):
             raise Exception("No playlist data received from server.")
 
         media_url, playlist, playlist_id = self.parse_playlist(pl_data)
-        playlist_files_downloaded = self.download_playlist_files(playlist, media_url)
-        if playlist_files_downloaded:
-            self.PLAYLIST_PARSER.save_playlist_to_file(playlist)
-            self.status_monitor.confirm_new_playlist(playlist_id)
-            return playlist
-        raise Exception("Files were not downloaded.")
+        self.download_playlist_files(playlist, media_url)
+        self.PLAYLIST_PARSER.save_playlist_to_file(playlist)
+        return playlist, playlist_id
 
     def parse_playlist(self, pl_data):
         self.LOG.debug("Parsing playlist")
@@ -148,8 +145,7 @@ class PlaylistManager(object):
                 content.content_uri = self.downloader.download(content)
             except Exception, e:
                 self.LOG.error('Failed to download content, %s %s', content, e)
-                return False
-        return True
+                raise
 
 
 class PlaylistJsonParser(object):

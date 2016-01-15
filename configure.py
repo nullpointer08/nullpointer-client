@@ -55,11 +55,54 @@ CONFIG_ITEMS = (
     },
     {
         'section': 'Server',
-        'item': 'playlist_url',
+        'item': 'server_url',
         'description': 'Enter the URL to fetch playlists from.',
-        'default': 'http://drajala.ddns.net:8000/api/device/playlist',
+        'default': 'http://drajala.ddns.net:8000/',
+        'is_path': False
+    },
+    {
+        'section': 'Server',
+        'item': 'status_server_path',
+        'description': 'Enter the path on the server to send status to.',
+        'default': '/api/device/status',
+        'is_path': False
+    },
+    {
+        'section': 'Server',
+        'item': 'playlist_server_path',
+        'description': 'Enter the path on the server to fetch playlists from and post confirmation after it has been taken to use.',
+        'default': '/api/device/playlist',
+        'is_path': False
+    },
+    {
+        'section': 'Client',
+        'item': 'playlist_connection_timeout',
+        'description': 'Enter time to wait for a connection while downloading a playlist before giving up. (0 waits forever)',
+        'default': '60',
+        'is_path': False
+    },
+    {
+        'section': 'Client',
+        'item': 'playlist_bytes_timeout',
+        'description': 'Enter time to wait for a single byte while downloading a playlist before giving up. (0 waits forever)',
+        'default': '30',
+        'is_path': False
+    },
+    {
+        'section': 'Client',
+        'item': 'status_connection_timeout',
+        'description': 'Enter time to wait for a connection while posting a status message before giving up. (0 waits forever)',
+        'default': '60',
+        'is_path': False
+    },
+    {
+        'section': 'Client',
+        'item': 'status_bytes_timeout',
+        'description': 'Enter time to wait for a single byte while posting a status message before giving up. (0 waits forever)',
+        'default': '30',
         'is_path': False
     }
+
 )
 
 

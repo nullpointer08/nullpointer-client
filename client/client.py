@@ -13,16 +13,12 @@ class Client(object):
 
     def __init__(self, config):
         self.executor = AsynchExecutor(2)
-        self.status_monitor = StatusMonitor(
-            'http://drajala.ddns.net:8000/api/status',
-            'http://drajala.ddns.net:8000/api/device/confirmedplaylist',
-            'dev1'
-        )
-        self.pl_manager = PlaylistManager(config, self.status_monitor)
+        self.status_monitor = StatusMonitor(config)
+        self.pl_manager = PlaylistManager(config)
         self.POLL_TIME = config.getfloat('Client', 'playlist_poll_time')
         self.scheduler = Scheduler()
 
-    def schedule_playlist(self, playlist):
+    def schedule_playlist(self, playlist, playlist_id):
         self.LOG.debug('Client scheduling playlist %s' % playlist)
         if len(playlist) == 0:
             self.LOG.debug('No media to schedule')
@@ -33,6 +29,7 @@ class Client(object):
             for media in playlist:
                 scheduled_pl.append(media)
         self.scheduler.modify_playlist_atomically(replace_playlist)
+        self.status_monitor.confirm_new_playlist(playlist_id)
         if not self.scheduler.running:
             self.scheduler.start()
         self.status_monitor.submit_collected_events()
@@ -41,7 +38,7 @@ class Client(object):
         # Get the first playlist from file. If there is no ready playlist,
         # this returns an empty playlist
         playlist = self.pl_manager.fetch_local_playlist()
-        self.schedule_playlist(playlist)
+        self.schedule_playlist(playlist, None)
 
         # Run by AsynchExecutor
         def get_new_playlist_and_free_up_space_if_necessary():
@@ -50,6 +47,12 @@ class Client(object):
         # Called by AsynchExecutor when there was an error
         def pl_fetch_error(error):
             self.LOG.error('Error fetching playlist: %s' % error)
+            self.status_monitor.add_status(
+                StatusMonitor.ERROR,
+                StatusMonitor.Categories.CONNECTION,
+                error
+            )
+            self.status_monitor.submit_collected_events()
 
         self.executor.start()
         try:
