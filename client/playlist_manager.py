@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from ast import literal_eval
-
+from urlparse import urljoin
 import requests
 
 from display.media import Media
@@ -26,8 +26,9 @@ class PlaylistManager(object):
         device_id_file.close()
 
         # Playlist URL
-        incomplete_url = config.get('Server', 'playlist_url')
-        self.PLAYLIST_URL = config.get('Server', 'playlist_url') #  incomplete_url.format(**{'device_id': self.DEVICE_ID})
+        server_url = config.get('Server', 'server_url')
+        playlist_server_path = config.get('Server', 'playlist_server_path')
+        self.PLAYLIST_URL = urljoin(server_url, playlist_server_path)
 
         # Playlist file
         playlist_file = config.get('Storage', 'playlist_file')
@@ -56,7 +57,7 @@ class PlaylistManager(object):
         media_cleaner = MediaCleaner(config, self.PLAYLIST_PARSER)
 
         # Utility for downloading files
-        self.downloader = ChunkedDownloader(self.PLAYLIST_URL,
+        self.downloader = ChunkedDownloader(server_url,
                                             self.DEVICE_ID,
                                             self.MEDIA_FOLDER,
                                             self.PLAYLIST_TIMEOUTS,

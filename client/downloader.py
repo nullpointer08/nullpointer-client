@@ -76,8 +76,7 @@ class ChunkedDownloader(object):
 
     def download(self, content):
         url = content.content_uri
-        headers = {}
-        headers['Content-Type'] = Media.VALID_CONTENT_TYPES[content.content_type]
+        headers = {'Content-Type':Media.VALID_CONTENT_TYPES[content.content_type]}
         if urlparse(url).netloc == self.HISRA_NET_LOC:
             headers['Authorization'] = self.AUTHORIZATION_HEADER
 
