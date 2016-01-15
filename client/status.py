@@ -46,10 +46,10 @@ class StatusMonitor(object):
         if len(self.status_list) == 0:
             return None
         if len(self.status_list) > 50:
-            del self.status_list[1:-10]
+            del self.status_list[4:-10]
             self.add_status(StatusMonitor.EventTypes.ERROR,
                             StatusMonitor.Categories.OMITTED_STATUSES,
-                            'Too many status msgs collected. Purged all but oldest and 10 newest')
+                            'Too many status msgs collected. Purged all but 4 oldest and 10 newest')
 
         self.LOG.debug("Submitting collected events. Last: %s", self.status_list[-1])
         data = self.status_list
@@ -102,7 +102,7 @@ class StatusMonitor(object):
                 'Could not confirm playlist use'
             )
         return response
-
+'''
 if __name__ == '__main__':
     status = StatusMonitor('http://192.168.1.60:8000/api/status', '98efa39bd87bf3c7084e07f55c26c577')
     status.add_status(
@@ -112,3 +112,4 @@ if __name__ == '__main__':
     )
     response = status.submit_collected()
     print response.content
+'''
