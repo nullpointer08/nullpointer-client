@@ -50,7 +50,7 @@ class Client(object):
             self.status_monitor.add_status(
                 StatusMonitor.EventTypes.ERROR,
                 StatusMonitor.Categories.CONNECTION,
-                error.message
+                str(error)
             )
             self.status_monitor.submit_collected_events()
 
