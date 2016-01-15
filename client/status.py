@@ -44,7 +44,7 @@ class StatusMonitor(object):
     def submit_collected_events(self):
         if len(self.status_list) == 0:
             return None
-        if len(self.status_list > 100):
+        if len(self.status_list) > 100:
             self.status_list = self.status_list[51:]
             self.add_status(StatusMonitor.ERROR,
                             StatusMonitor.Categories.OMITTED_STATUSES,
