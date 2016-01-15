@@ -59,7 +59,7 @@ class StatusMonitor(object):
             headers=self.headers,
             timeout=self.timeouts
         )
-        if response.status_code == 200:
+        if response.status_code == 201:
             self.status_list = []
         return response
 

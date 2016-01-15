@@ -9,8 +9,8 @@ from display.media import Media
 from downloader import ChunkedDownloader
 from media_cleaner import MediaCleaner
 
-class PlaylistManager(object):
 
+class PlaylistManager(object):
     LOG = logging.getLogger(__name__)
     SCHEDULE_NAME_STRING = 'media_schedule_json'
     SCHEDULE_TIME_STRING = 'time'
