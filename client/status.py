@@ -12,8 +12,9 @@ class StatusMonitor(object):
 
     LOG = logging.getLogger(__name__)
 
-    ERROR = 'error'
-    SUCCESS = 'success'
+    class EventTypes:
+        ERROR = 0
+        SUCCESS = 1
 
     class Categories:
         CONNECTION = 'Connection'
@@ -44,13 +45,13 @@ class StatusMonitor(object):
     def submit_collected_events(self):
         if len(self.status_list) == 0:
             return None
-        if len(self.status_list) > 100:
-            self.status_list = self.status_list[51:]
-            self.add_status(StatusMonitor.ERROR,
+        if len(self.status_list) > 50:
+            del self.status_list[1:-10]
+            self.add_status(StatusMonitor.EventTypes.ERROR,
                             StatusMonitor.Categories.OMITTED_STATUSES,
-                            'Too many status msgs collected. Only newest 50 submitted.')
+                            'Too many status msgs collected. Purged all but oldest and 10 newest')
 
-        print "Submitting collected events %s" % self.status_list
+        self.LOG.debug("Submitting collected events. Last: %s", self.status_list[-1])
         data = self.status_list
         response = requests.post(
             self.status_url,
@@ -96,16 +97,16 @@ class StatusMonitor(object):
         )
         if response.status_code != 200:
             self.add_status(
-                StatusMonitor.ERROR,
+                StatusMonitor.EventTypes.ERROR,
                 'StatusMonitor',
                 'Could not confirm playlist use'
             )
         return response
 
 if __name__ == '__main__':
-    status = StatusMonitor('http://drajala.ddns.net:8000/api/status', 'dev1')
+    status = StatusMonitor('http://192.168.1.60:8000/api/status', '98efa39bd87bf3c7084e07f55c26c577')
     status.add_status(
-        StatusMonitor.SUCCESS,
+        StatusMonitor.EventTypes.SUCCESS,
         'Test',
         'Sending test status'
     )

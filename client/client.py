@@ -48,7 +48,7 @@ class Client(object):
         def pl_fetch_error(error):
             self.LOG.error('Error fetching playlist: %s' % error)
             self.status_monitor.add_status(
-                StatusMonitor.ERROR,
+                StatusMonitor.EventTypes.ERROR,
                 StatusMonitor.Categories.CONNECTION,
                 error.message
             )
