@@ -23,8 +23,8 @@ class StatusMonitor(object):
         server_url = config.get('Server', 'server_url')
         playlist_server_path = config.get('Server', 'playlist_server_path')
         status_server_path = config.get('Server', 'status_server_path')
-        self.status_url = urljoin(server_url, playlist_server_path)
-        self.confirm_pl_url = urljoin(server_url, status_server_path)
+        self.status_url = urljoin(server_url, status_server_path)
+        self.confirm_pl_url = urljoin(server_url, playlist_server_path)
         # Device ID
         device_id_file = open(config.get('Device', 'device_id_file'), 'r')
         device_id = device_id_file.read().strip()
