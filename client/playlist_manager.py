@@ -95,7 +95,7 @@ class PlaylistManager(object):
             raise Exception('Wrong status from server while fetching playlist: %s' % response.status_code)
 
         except Exception, e:
-            self.LOG.exception('Could not fetch playlist %s', url)
+            self.LOG.error('Could not fetch playlist from url: {0} Exception: {1}'.format(url,e.message))
             # re-raise error so our async executor knows to not set this as a playlist.
             raise
 

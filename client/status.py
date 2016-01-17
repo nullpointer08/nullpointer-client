@@ -63,8 +63,8 @@ class StatusMonitor(object):
             )
             if response.status_code == 201:
                 self.status_list = []
-        except Exception as e:
-            self.LOG.exception('Could not submit collected events')
+        except requests.exceptions.RequestException as e:
+            self.LOG.error('Could not submit collected events. Exception: {0}'.format(e.message))
 
     def add_status(self, event_type, event_category, event_description, event_time=None):
         if len(event_category) > 20:
@@ -96,27 +96,18 @@ class StatusMonitor(object):
         data = {
             'confirmed_playlist': playlist_id
         }
-        response = requests.put(
-            self.confirm_pl_url,
-            json=data,
-            headers=self.headers,
-            timeout=self.timeouts
-        )
-        if response.status_code != 200:
-            self.add_status(
-                StatusMonitor.EventTypes.ERROR,
-                'StatusMonitor',
-                'Could not confirm playlist use'
+        try:
+            response = requests.put(
+                self.confirm_pl_url,
+                json=data,
+                headers=self.headers,
+                timeout=self.timeouts
             )
-        return response
-'''
-if __name__ == '__main__':
-    status = StatusMonitor('http://192.168.1.60:8000/api/status', '98efa39bd87bf3c7084e07f55c26c577')
-    status.add_status(
-        StatusMonitor.EventTypes.SUCCESS,
-        'Test',
-        'Sending test status'
-    )
-    response = status.submit_collected()
-    print response.content
-'''
+            if response.status_code != 200:
+                self.add_status(
+                    StatusMonitor.EventTypes.ERROR,
+                    'StatusMonitor',
+                    'Could not confirm playlist use'
+                )
+        except requests.exceptions.RequestException as e:
+            self.LOG.error('Could not confirm playlist use. Exception: {0}'.format(e.message))
