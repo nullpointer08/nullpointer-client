@@ -64,7 +64,7 @@ class StatusMonitor(object):
             if response.status_code == 201:
                 self.status_list = []
         except Exception as e:
-            self.LOG.error('Could not submit collected events', e)
+            self.LOG.error('Could not submit collected events', str(e))
 
     def add_status(self, event_type, event_category, event_description, event_time=None):
         if len(event_category) > 20:
