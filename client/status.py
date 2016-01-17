@@ -53,6 +53,7 @@ class StatusMonitor(object):
 
         self.LOG.debug("Submitting collected events. Last: %s", self.status_list[-1])
         data = self.status_list
+        self.LOG.debug('Headers: ', self.headers)
         try:
             response = requests.post(
                 self.status_url,
