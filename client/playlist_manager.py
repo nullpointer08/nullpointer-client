@@ -78,26 +78,18 @@ class PlaylistManager(object):
 
     def fetch_remote_playlist_data(self):
         url = self.PLAYLIST_URL
-        headers = {
-            'Authorization': 'Device %s' % self.DEVICE_ID
-        }
+        headers = {'Authorization': 'Device %s' % self.DEVICE_ID}
         self.LOG.debug('Fetching remote playlist from %s' % url)
-        try:
-            response = requests.get(
+        response = requests.get(
                 url,
                 timeout=(60, 60),
                 stream=False,
                 headers=headers)
 
-            if response.status_code == 200:
-                self.LOG.debug('Fetched data: %s' % response.content)
-                return response.content
-            raise Exception('Wrong status from server while fetching playlist: %s' % response.status_code)
-
-        except Exception, e:
-            self.LOG.error('Could not fetch playlist from url: {0} Exception: {1}'.format(url,e.message))
-            # re-raise error so our async executor knows to not set this as a playlist.
-            raise
+        if response.status_code == 200:
+            self.LOG.debug('Fetched data: %s' % response.content)
+            return response.content
+        raise Exception('Wrong status from server while fetching playlist: %s' % response.status_code)
 
     def fetch_playlist(self):
         pl_data = self.fetch_remote_playlist_data()
@@ -114,8 +106,8 @@ class PlaylistManager(object):
         try:
             playlist_dl = json.loads(pl_data)
         except Exception, e:
-            self.LOG.error('Playlist likely corrupted: %s' % e)
-            #re-raise error so our async executor knows to not set this as a playlist.
+            self.LOG.debug('Playlist likely corrupted: %s' % e)
+            # re-raise error so our async executor knows to not set this as a playlist.
             raise
 
         self.LOG.debug('Playlist fetched %s', playlist_dl)
@@ -146,7 +138,7 @@ class PlaylistManager(object):
             try:
                 content.content_uri = self.downloader.download(content)
             except Exception, e:
-                self.LOG.error('Failed to download content, %s %s', content, e)
+                self.LOG.debug('Failed to download content, %s %s', content, e.message)
                 raise
 
 

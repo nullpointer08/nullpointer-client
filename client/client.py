@@ -46,7 +46,7 @@ class Client(object):
 
         # Called by AsynchExecutor when there was an error
         def pl_fetch_error(error):
-            self.LOG.error('Error fetching playlist: %s')
+            self.LOG.error('Exception fetching playlist: {0}'.format(error.message))
             self.status_monitor.add_status(
                 StatusMonitor.EventTypes.ERROR,
                 StatusMonitor.Categories.CONNECTION,
