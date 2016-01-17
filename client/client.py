@@ -52,6 +52,7 @@ class Client(object):
                 StatusMonitor.Categories.CONNECTION,
                 str(error)
             )
+            self.LOG.debug('Creating status obj')
             self.status_monitor.submit_collected_events()
 
         self.executor.start()

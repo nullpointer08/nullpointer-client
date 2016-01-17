@@ -29,6 +29,7 @@ class PlaylistManager(object):
         server_url = config.get('Server', 'server_url')
         playlist_server_path = config.get('Server', 'playlist_server_path')
         self.PLAYLIST_URL = urljoin(server_url, playlist_server_path)
+        self.LOG.debug('PLAYLIST URL SET: %s', self.PLAYLIST_URL)
 
         # Playlist file
         playlist_file = config.get('Storage', 'playlist_file')

@@ -53,34 +53,40 @@ class StatusMonitor(object):
 
         self.LOG.debug("Submitting collected events. Last: %s", self.status_list[-1])
         data = self.status_list
-        response = requests.post(
-            self.status_url,
-            json=data,
-            headers=self.headers,
-            timeout=self.timeouts
-        )
-        if response.status_code == 201:
-            self.status_list = []
-        return response
+        try:
+            response = requests.post(
+                self.status_url,
+                json=data,
+                headers=self.headers,
+                timeout=self.timeouts
+            )
+            if response.status_code == 201:
+                self.status_list = []
+        except Exception as e:
+            self.LOG.error('Could not submit collected events', e)
 
     def add_status(self, event_type, event_category, event_description, event_time=None):
         if len(event_category) > 20:
-            self.LOG.error('Too long event category while adding status.')
+            self.LOG.warn('Too long event category while adding status.')
             event_category = event_category[:20]
         if len(event_description) > 128:
-            self.LOG.error('Too long event description while adding status.')
+            self.LOG.warn('Too long event description while adding status.')
             event_description = event_description[:128]
         if event_time is None:
             event_time = time.time()
+            self.LOG.debug('event time was None')
+
         event_time = datetime.datetime.fromtimestamp(
             int(event_time)
         ).strftime('%Y-%m-%d %H:%M:%S')
+        self.LOG.debug('Creating status obj')
         status_obj = {
             'type': event_type,
             'category': event_category,
             'time': event_time,
             'description': event_description
         }
+        self.LOG.debug('Appending status')
         self.status_list.append(status_obj)
 
     def confirm_new_playlist(self, playlist_id):
