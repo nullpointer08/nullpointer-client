@@ -62,7 +62,7 @@ class StatusMonitor(object):
                 timeout=self.timeouts
             )
             if response.status_code == 201:
-                self.debug('Status list posted')
+                self.LOG.debug('Status list posted')
                 self.status_list = []
         except requests.exceptions.RequestException as e:
             self.LOG.error('Could not submit collected events. Exception: {0}'.format(e.message))
