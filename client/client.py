@@ -38,7 +38,7 @@ class Client(object):
         # Get the first playlist from file. If there is no ready playlist,
         # this returns an empty playlist
         playlist = self.pl_manager.fetch_local_playlist()
-        self.schedule_playlist(playlist, None)
+        self.schedule_playlist(playlist, None, None)
 
         # Run by AsynchExecutor
         def get_new_playlist_and_free_up_space_if_necessary():
