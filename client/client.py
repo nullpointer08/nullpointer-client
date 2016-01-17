@@ -18,7 +18,7 @@ class Client(object):
         self.POLL_TIME = config.getfloat('Client', 'playlist_poll_time')
         self.scheduler = Scheduler()
 
-    def schedule_playlist(self, playlist, playlist_id):
+    def schedule_playlist(self, playlist, playlist_id, playlist_update_time):
         self.LOG.debug('Client scheduling playlist %s' % playlist)
         if len(playlist) == 0:
             self.LOG.debug('No media to schedule')
@@ -29,7 +29,7 @@ class Client(object):
             for media in playlist:
                 scheduled_pl.append(media)
         self.scheduler.modify_playlist_atomically(replace_playlist)
-        self.status_monitor.confirm_new_playlist(playlist_id)
+        self.status_monitor.confirm_new_playlist(playlist_id, playlist_update_time)
         if not self.scheduler.running:
             self.scheduler.start()
         self.status_monitor.submit_collected_events()

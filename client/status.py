@@ -62,6 +62,7 @@ class StatusMonitor(object):
                 timeout=self.timeouts
             )
             if response.status_code == 201:
+                self.debug('Status list posted')
                 self.status_list = []
         except requests.exceptions.RequestException as e:
             self.LOG.error('Could not submit collected events. Exception: {0}'.format(e.message))
@@ -90,11 +91,12 @@ class StatusMonitor(object):
         self.LOG.debug('Appending status')
         self.status_list.append(status_obj)
 
-    def confirm_new_playlist(self, playlist_id):
+    def confirm_new_playlist(self, playlist_id, playlist_update_time):
         if playlist_id is None:
             return
         data = {
-            'confirmed_playlist': playlist_id
+            'confirmed_playlist': playlist_id,
+            'update_time': playlist_update_time
         }
         try:
             response = requests.put(
@@ -103,11 +105,17 @@ class StatusMonitor(object):
                 headers=self.headers,
                 timeout=self.timeouts
             )
-            if response.status_code != 200:
-                self.add_status(
-                    StatusMonitor.EventTypes.ERROR,
-                    'StatusMonitor',
-                    'Could not confirm playlist use'
-                )
+            if response.status_code == 200:
+                self.LOG.debug('Playlist confirmed to server.')
+                return
+            if response.status_code == 428:
+                self.LOG.info('Server playlist was updated after download')
+                return
+
+            self.add_status(
+                StatusMonitor.EventTypes.ERROR,
+                'StatusMonitor',
+                'Could not confirm playlist use status: {0}'.format(response.status_code)
+            )
         except requests.exceptions.RequestException as e:
             self.LOG.error('Could not confirm playlist use. Exception: {0}'.format(e.message))

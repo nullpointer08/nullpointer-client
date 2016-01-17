@@ -35,9 +35,9 @@ class AsynchExecutor(object):
                 if task == 'SHUTDOWN':
                     break
                 try:
-                    retval, retval2 = task.work_func(*task.params)
+                    retval, retval2, retval3 = task.work_func(*task.params)
                     self.LOG.debug('AsynchTask finished with retval %s' % retval)
-                    task.on_success(retval, retval2)
+                    task.on_success(retval, retval2, retval3)
                 except Exception as e:
                     task.on_error(e)
         self.work_thread = Thread(target=consume_task_queue, args=(self,))

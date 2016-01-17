@@ -18,6 +18,7 @@ class PlaylistManager(object):
     SCHEDULE_URI_STRING = 'url'
     SCHEDULE_MEDIA_URL = 'media_url'
     PLAYLIST_ID = 'id'
+    PLAYLIST_UPDATE_TIME_STRING = 'updated'
 
     def __init__(self, config):
         # Device ID
@@ -96,10 +97,10 @@ class PlaylistManager(object):
         if pl_data is None:
             raise Exception("No playlist data received from server.")
 
-        media_url, playlist, playlist_id = self.parse_playlist(pl_data)
+        media_url, playlist, playlist_id, playlist_update_time = self.parse_playlist(pl_data)
         self.download_playlist_files(playlist, media_url)
         self.PLAYLIST_PARSER.save_playlist_to_file(playlist)
-        return playlist, playlist_id
+        return playlist, playlist_id, playlist_update_time
 
     def parse_playlist(self, pl_data):
         self.LOG.debug("Parsing playlist")
@@ -112,11 +113,12 @@ class PlaylistManager(object):
 
         self.LOG.debug('Playlist fetched %s', playlist_dl)
         playlist_id = playlist_dl[PlaylistManager.PLAYLIST_ID]
+        playlist_update_time = playlist_dl[PlaylistManager.PLAYLIST_UPDATE_TIME_STRING]
         media_url = playlist_dl[PlaylistManager.SCHEDULE_MEDIA_URL]
         media_schedule = literal_eval(playlist_dl[PlaylistManager.SCHEDULE_NAME_STRING])
         media_schedule = self.generate_viewer_playlist(media_schedule)
         self.LOG.debug('Media schedule %s', media_schedule)
-        return media_url, media_schedule, playlist_id
+        return media_url, media_schedule, playlist_id, playlist_update_time
 
     def generate_viewer_playlist(self, playlist):
         viewer_pl = []
