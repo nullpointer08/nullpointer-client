@@ -10,6 +10,10 @@ from downloader import ChunkedDownloader
 from media_cleaner import MediaCleaner
 
 
+class PlaylistNotChanged(Exception):
+    pass
+
+
 class PlaylistManager(object):
     LOG = logging.getLogger(__name__)
     SCHEDULE_NAME_STRING = 'media_schedule_json'
@@ -98,6 +102,8 @@ class PlaylistManager(object):
             raise Exception("No playlist data received from server.")
 
         media_url, playlist, playlist_id, playlist_update_time = self.parse_playlist(pl_data)
+        if self.playlist_id == playlist_id and self.playlist_update_time == playlist_update_time:
+            raise PlaylistNotChanged("Playlist data has not changed since last downloaded")
         self.download_playlist_files(playlist, media_url)
         self.PLAYLIST_PARSER.save_playlist_to_file(playlist)
         return playlist, playlist_id, playlist_update_time

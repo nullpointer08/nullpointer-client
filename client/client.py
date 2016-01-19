@@ -1,9 +1,8 @@
 from asynch_executor import AsynchExecutor
 import logging
 import time
-from playlist_manager import PlaylistManager
+from playlist_manager import PlaylistManager, PlaylistNotChanged
 from display.scheduler import Scheduler
-from media_cleaner import MediaCleaner
 from status import StatusMonitor
 
 
@@ -46,6 +45,8 @@ class Client(object):
 
         # Called by AsynchExecutor when there was an error
         def pl_fetch_error(error):
+            if isinstance(error, PlaylistNotChanged):
+                self.LOG.info('Playlist has not been changed on the server. Asynch task was aborted.')
             self.LOG.error('Exception fetching playlist: {0}'.format(error.message))
             self.status_monitor.add_status(
                 StatusMonitor.EventTypes.ERROR,
