@@ -69,8 +69,8 @@ class PlaylistManager(object):
                                             self.PLAYLIST_TIMEOUTS,
                                             media_cleaner)
 
-        self.playlist_id
-        self.playlist_update_time
+        self.playlist_id = None
+        self.playlist_update_time = None
 
     def fetch_local_playlist(self):
         try:
@@ -107,6 +107,8 @@ class PlaylistManager(object):
         media_url, playlist, playlist_id, playlist_update_time = self.parse_playlist(pl_data)
         if self.playlist_id == playlist_id and self.playlist_update_time == playlist_update_time:
             raise PlaylistNotChanged("Playlist data has not changed since last downloaded")
+        self.playlist_id = playlist_id
+        self.playlist_update_time = playlist_update_time
         self.download_playlist_files(playlist, media_url)
         self.PLAYLIST_PARSER.save_playlist_to_file(playlist)
         return playlist, playlist_id, playlist_update_time
