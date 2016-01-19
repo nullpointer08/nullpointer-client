@@ -69,6 +69,9 @@ class PlaylistManager(object):
                                             self.PLAYLIST_TIMEOUTS,
                                             media_cleaner)
 
+        self.playlist_id
+        self.playlist_update_time
+
     def fetch_local_playlist(self):
         try:
             local_playlist = self.PLAYLIST_PARSER.get_stored_playlist()
