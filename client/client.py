@@ -47,6 +47,7 @@ class Client(object):
         def pl_fetch_error(error):
             if isinstance(error, PlaylistNotChanged):
                 self.LOG.info('Playlist has not been changed on the server. Asynch task was aborted.')
+                self.status_monitor.submit_collected_events()
                 return
             self.LOG.error('Exception fetching playlist: {0}'.format(error.message))
             self.status_monitor.add_status(
