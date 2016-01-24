@@ -77,30 +77,15 @@ LOGGING_CONFIG = {
 }
 
 
-def run(fullscreen):
-    if fullscreen:
-        start_sh_path = START_PATH + '/' + START_SHELL_SCRIPT_NAME
-        subprocess.Popen(['xinit', start_sh_path, '&'])
-    else:
-        config = ConfigParser.ConfigParser()
-        with open(CONFIG_PATH) as config_fp:
-            config.readfp(config_fp)
-        logging.config.dictConfig(LOGGING_CONFIG)
-        client = Client(config)
-        client.start()
+def run():
+    config = ConfigParser.ConfigParser()
+    with open(CONFIG_PATH) as config_fp:
+        config.readfp(config_fp)
+    logging.config.dictConfig(LOGGING_CONFIG)
+    client = Client(config)
+    client.start()
 
 
 if __name__ == '__main__':
     print 'Starting main'
-
-    parser = OptionParser()
-    parser.add_option(
-        '-f',
-        '--fullscreen',
-        action='store_true',
-        dest='fullscreen',
-        default=False,
-        help='Starts the client in full screen borderless mode.'
-    )
-    (options, args) = parser.parse_args()
-    run(options.fullscreen)
+    run()
