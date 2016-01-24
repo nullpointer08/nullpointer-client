@@ -16,7 +16,8 @@ APT_REQS = (
     'python-pip',
     'matchbox-window-manager',
     'uzbl',
-    'xinit'
+    'xinit',
+    'supervisor'
 )
 
 PIP_REQS = (
@@ -25,10 +26,52 @@ PIP_REQS = (
 )
 
 DEVNULL = open(os.devnull, 'wb')
+HOME = '/home/pi'
 START_PATH = os.path.dirname(os.path.realpath(__file__))
-START_SHELL_SCRIPT_NAME = 'start.sh'
+XINIT_SHELL_SCRIPT = os.path.join(START_PATH, '.xinitrc')
 START_PYTHON_SCRIPT_NAME = 'start_client.py'
 
+SUPERVISORD_CONF = """\
+[unix_http_server]
+file={0}   ; (the path to the socket file)
+chmod=0700                       ; sockef file mode (default 0700)
+
+[supervisord]
+logfile=/var/log/supervisor/supervisord.log ; (main log file;default $CWD/supervisord.log)
+pidfile=/var/run/supervisord.pid ; (supervisord pidfile;default supervisord.pid)
+childlogdir=/var/log/supervisor            ; ('AUTO' child log dir, default $TEMP)
+user=pi
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl=unix://{0} ; use a unix:// URL  for a unix socket
+
+[include]
+files = /etc/supervisor/conf.d/*.conf
+""".format(os.path.join(START_PATH, 'supervisor.sock'))
+
+SUPERVISOR_PROG_CONF = """\
+[program:nullpointer]
+autorestart=true
+autostart=true
+command=python {start_script}
+directory={work_dir}
+environment=DISPLAY=":0", HOME="{home}"
+startsecs=10
+user=pi
+
+[program:xinit]
+autorestart=true
+autostart=true
+command=xinit {xinit}
+user=pi
+""".format(
+    home=HOME,
+    start_script=os.path.join(START_PATH, START_PYTHON_SCRIPT_NAME),
+    work_dir=START_PATH,
+    xinit=XINIT_SHELL_SCRIPT)
 
 def install_apt_req(apt_req):
     retval = subprocess.call(
@@ -60,7 +103,6 @@ def install_pip_req(pip_req):
 def is_pip_req_installed(req):
     return req in sys.modules
 
-
 def install_reqs(reqs, is_installed_func, install_func):
     pkg_count = 0
     for req in reqs:
@@ -75,31 +117,23 @@ def install_reqs(reqs, is_installed_func, install_func):
         pkg_count += 1
         print '%s/%s) %s: %s' % (pkg_count, len(reqs), req, status)
 
+def configure_supervisor():
+    with open('/etc/supervisor/supervisord.conf', 'w') as config:
+        config.write(SUPERVISORD_CONF)
 
-def add_to_startup():
-    user = 'pi'  # Should this be configurable?
-    start_line = START_PATH + '/' + START_PYTHON_SCRIPT_NAME + ' -f'
-    cron_line = '@reboot %s python %s &\n' % (user, start_line)
-    cron_file = open('/etc/crontab', 'r')
-    cron_content = cron_file.read()
-    cron_file.close()
-    if cron_line in cron_content:
-        return
-    cron_file = open('/etc/crontab', 'a')
-    cron_file.write(cron_line)
-    cron_file.close()
+    with open('/etc/supervisor/conf.d/nullpointer.conf', 'w') as config:
+        config.write(SUPERVISOR_PROG_CONF)
 
-
-def create_startup_shell_script():
-    start_path = os.path.dirname(os.path.realpath(__file__))
-    startup_script = open(START_PATH + '/' + START_SHELL_SCRIPT_NAME, 'w')
+def create_xinit_shell_script():
+    startup_script = open(os.path.join(START_PATH, XINIT_SHELL_SCRIPT), 'w')
     startup_script.write('#!/bin/bash\n')
     startup_script.write('xset -dpms\n')
     startup_script.write('xset s off\n')
     startup_script.write('xset s noblank\n')
-    startup_script.write('python %s/%s & matchbox-window-manager -use_titlebar no -use_cursor no\n' % (START_PATH, START_PYTHON_SCRIPT_NAME))
+    startup_script.write('matchbox-window-manager -use_titlebar no -use_cursor no')
     startup_script.close()
-    print 'Wrote startup script to %s' % start_path
+    os.chmod(XINIT_SHELL_SCRIPT, 0555)
+    print 'Wrote xinit script to %s' % START_PATH
 
 
 def install():
@@ -108,10 +142,9 @@ def install():
     print '\nInstalling python packages...'
     install_reqs(PIP_REQS, is_pip_req_installed, install_pip_req)
     print '\nCreating startup shell script'
-    create_startup_shell_script()
+    create_xinit_shell_script()
     print '\nAdding client to startup programs'
-    add_to_startup()
-
+    configure_supervisor()
 
 if __name__ == '__main__':
     parser = OptionParser()
