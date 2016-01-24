@@ -1,13 +1,86 @@
+The purpose of this document is to give an overview of the Raspberry Pi-based
+media display system. This includes short descriptions of the most important
+classes, configurations and their purposes.
+
 --------
 Overview
 --------
-This is the software running on the Raspberry Pi for displaying user media.
-
 The display software running on the Rasbperry Pi is divided into 'client' and
 'display' functionalities. The 'display' side broadly concerns itself with
 the details of displaying the media. The 'client' side concerns itself with
 communicating the the server, fetching playlists, downloading media and
 maintaining disk space.
+
+--------
+Concepts
+--------
+Device ID and Device authentication:
+  Each device has a 'unique device ID', which is a secret string uniquely
+  identifying the device. This ID is not visible to any user and should be
+  protected from being exposed. The purpose of this ID is to allow the server
+  to identify the device making the request in order to check if the device has
+  appropriate permissions. A device should only be able to fetch playlists and
+  media belonging to the device's owner.
+
+  To support this, all requests from the device to the backend server use
+  'Device authentication'. This is achieved by appending the device ID to the
+  Authorization header, for example:
+
+  Authorization: Device 877bd7ab2477903df833
+
+  The device ID must be known by the device and the server.
+
+------------
+Installation
+------------
+The 'install.py' script will install the system and its requirements.
+
+-------------
+Configuration
+-------------
+The client is configured with the 'configuration.properties' file. The
+configuration can be generated and edited by the 'configure.py' script. The
+configuration items are described below.
+
+[Storage]
+  media_folder: the folder where media is downloaded to
+  playlist_file: the filepath where downloaded playlist JSON is dowloaded to
+  cleanup_threshold_mb: the number of megabytes of free space must be available
+      before old media is removed from the device
+  cleanup_extra_space_to_free_up_mb: the number of megabytes that are freed up
+      when a clean up of old media is required.
+
+[Device]
+  device_id_file: path of the file containing the 'unique device ID' (see
+      explanation in the 'Concepts' section above)
+
+[Client]
+  playlist_poll_time: the number of seconds between request to the server for
+      the most recent playlist set for the device
+  playlist_connection_timeout: the number of seconds after which the attempt to
+      connect to the playlist server is retried
+  playlist_bytes_timeout: the number of seconds to wait between bytes when
+      downloading media from the server. If this time is reached, a new attempt
+      is made to download the missing bytes.
+  status_connection_timeout: when connecting to the server to send status
+      updates, this is the number of seconds after which the connection attempt
+      is retried if the connection cannot be established
+  status_bytes_timeout: the number of seconds to wait between bytes when sending
+      status data to the server before the connection is retried
+
+[Server]
+  server_url: URL of the backend server. For example http://drajala.ddns.net
+  status_server_path: the path relative to the server_url to send status updates
+      to. For example /api/device/status
+  playlist_server_path: the path relative to the server_url from which playlists
+      are fetched. For example /api/device/playlist
+
+---
+Use
+---
+After installing this system, it will start automatically when the device is
+started. The system is restarted by supervisord if it crashes. The system can
+also be started manually using the 'start_client.py' script.
 
 -------
 Display
@@ -49,3 +122,29 @@ Scheduler:
   This class is passed the playlist to be displayed. It iterates over the
   content of the playlist and delegates the content to be displayed by a
   Viewer. The sheduling runs in its own thread.
+
+------
+Client
+------
+AsynchExecutor:
+  A utility for submitting tasks to be executed asynchronously.
+
+Client:
+  The top-level object which periodically tells runs a task to fetch and
+  schedule a playlist.
+
+ResumableFileDownload and ChunkedDownloader:
+  Utilities to download files using HTTP Range headers in such a way that the
+  download can be resumed in case of a connection or power failure.
+
+MediaCleaner:
+  Class for removing unneeded media from the device when disk space starts
+  running out.
+
+PlaylistManager:
+  A class for downloading playlist JSON, parsing it and downloading files
+  referenced in the playlist.
+
+StatusMonitor:
+  A class which collects status events from the device, for example connection
+  failure when downloading a playlist, and sends them to the backend server.
