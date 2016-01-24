@@ -1,0 +1,51 @@
+--------
+Overview
+--------
+This is the software running on the Raspberry Pi for displaying user media.
+
+The display software running on the Rasbperry Pi is divided into 'client' and
+'display' functionalities. The 'display' side broadly concerns itself with
+the details of displaying the media. The 'client' side concerns itself with
+communicating the the server, fetching playlists, downloading media and
+maintaining disk space.
+
+-------
+Display
+-------
+Media:
+  This class represents a piece of content to be displayed by a viewer. Its
+  attributes are content_type (video, image or web page), content_uri (the
+  location of the content: on the disk for images and videos and on the web
+  for web pages) and display_time (how many seconds the content is displayed
+  for).
+
+Viewer:
+  This class is passed content to be displayed and delegates it to the
+  appropriate specific media viewer. E.g. web pages and images are delegated to
+  the Browser and videos are delegated to the VideoPlayer. This class makes
+  sure that the content is displayed for the specified time. If the specific
+  content viewer the media has been delegated to crashes, it resurrects it
+  and finishes displaying the media.
+
+AbstractViewer:
+  This is the abstract base class which is implemented by specific media
+  viewers.
+
+Browser:
+  This class is an implementation of AbstractViewer for displaying images and
+  web pages. It starts an instance of the uzbl browser and controls it using the
+  standard input stream of the browser process.
+
+  For displaying images, the browser navigates to a custom html page
+  (image_base.html with style from image_base.css) and sets the image using a
+  JavaScript command. Images are scaled to as large as possible without chaning
+  their height/width ratio.
+
+VideoPlayer:
+  This class is an implementation of AbstractViewer for displaying videos. It
+  wraps an omxplayer process and controls it using the standard input stream.
+
+Scheduler:
+  This class is passed the playlist to be displayed. It iterates over the
+  content of the playlist and delegates the content to be displayed by a
+  Viewer. The sheduling runs in its own thread.
