@@ -33,24 +33,25 @@ START_PYTHON_SCRIPT_NAME = 'start_client.py'
 
 SUPERVISORD_CONF = """\
 [unix_http_server]
-file={0}   ; (the path to the socket file)
+file={socket}   ; (the path to the socket file)
 chmod=0700                       ; sockef file mode (default 0700)
 
 [supervisord]
-logfile=/var/log/supervisor/supervisord.log ; (main log file;default $CWD/supervisord.log)
+logfile={log} ; (main log file;default $CWD/supervisord.log)
 pidfile=/var/run/supervisord.pid ; (supervisord pidfile;default supervisord.pid)
-childlogdir=/var/log/supervisor            ; ('AUTO' child log dir, default $TEMP)
 user=pi
 
 [rpcinterface:supervisor]
 supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 [supervisorctl]
-serverurl=unix://{0} ; use a unix:// URL  for a unix socket
+serverurl=unix://{socket} ; use a unix:// URL  for a unix socket
 
 [include]
 files = /etc/supervisor/conf.d/*.conf
-""".format(os.path.join(START_PATH, 'supervisor.sock'))
+""".format(
+    socket=os.path.join(START_PATH, 'supervisor.sock'),
+    log=os.path.join(HOME, 'supervisor.log'))
 
 SUPERVISOR_PROG_CONF = """\
 [program:nullpointer]
@@ -60,7 +61,6 @@ command=python {start_script}
 directory={work_dir}
 environment=DISPLAY=":0", HOME="{home}"
 startsecs=10
-user=pi
 
 [program:xinit]
 autorestart=true
@@ -73,9 +73,11 @@ user=pi
     work_dir=START_PATH,
     xinit=XINIT_SHELL_SCRIPT)
 
+XWRAPPER_CONF = "allowed_users=anybody"
+
 def install_apt_req(apt_req):
     retval = subprocess.call(
-        ['apt-get', 'install', apt_req, '-y'],
+        ['apt-get', '-f', 'install', apt_req, '-y'],
         stdout=DEVNULL,
         stderr=DEVNULL
     )
@@ -124,6 +126,10 @@ def configure_supervisor():
     with open('/etc/supervisor/conf.d/nullpointer.conf', 'w') as config:
         config.write(SUPERVISOR_PROG_CONF)
 
+def configure_xwrapper():
+    with open('/etc/X11/Xwrapper.config', 'w') as config:
+        config.write(XWRAPPER_CONF)
+
 def create_xinit_shell_script():
     startup_script = open(os.path.join(START_PATH, XINIT_SHELL_SCRIPT), 'w')
     startup_script.write('#!/bin/bash\n')
@@ -145,6 +151,7 @@ def install():
     create_xinit_shell_script()
     print '\nAdding client to startup programs'
     configure_supervisor()
+    configure_xwrapper()
 
 if __name__ == '__main__':
     parser = OptionParser()
