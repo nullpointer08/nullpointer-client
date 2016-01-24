@@ -17,6 +17,7 @@ APT_REQS = (
     'matchbox-window-manager',
     'uzbl',
     'xinit',
+    'x11-xserver-utils',
     'supervisor'
 )
 
