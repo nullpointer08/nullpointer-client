@@ -18,7 +18,8 @@ APT_REQS = (
     'uzbl',
     'xinit',
     'x11-xserver-utils',
-    'supervisor'
+    'supervisor',
+	'omxplayer'
 )
 
 PIP_REQS = (
