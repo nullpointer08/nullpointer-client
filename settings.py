@@ -1,6 +1,5 @@
 from urlparse import urljoin
 import os
-import logging
 
 # MUST BE CHANGED IN ORDER FOR THE PI TO WORK
 # This Pi's unique device id

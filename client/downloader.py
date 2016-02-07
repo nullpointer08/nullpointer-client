@@ -35,6 +35,8 @@ class ResumableFileDownload(object):
             for chunk in iter_function(chunk_size=1024):
                 if chunk:
                     f.write(chunk)
+            f.flush()
+            os.fsync(f.fileno())
 
     def download_complete(self):
         if os.path.isfile(self.incomplete_filepath):
@@ -49,6 +51,7 @@ class ResumableFileDownload(object):
             elif file_md5 == self.expected_md5:
                 os.rename(self.incomplete_filepath, self.complete_filepath)
                 return
+
         raise Exception("Error completing download.")
 
     def bytes_downloaded(self):
