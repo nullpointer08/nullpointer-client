@@ -2,9 +2,11 @@ import requests
 import logging
 import os
 from urlparse import urlparse
+from settings import SERVER_URL, AUTHORIZATION_HEADER, MEDIA_DOWNLOAD_TIMEOUTS, SERVER_VERIFY, MEDIA_FOLDER
 import re
 import unicodedata
 from hashlib import md5 as md5sum
+from media_cleaner import MediaCleaner
 from display.media import Media
 
 
@@ -62,12 +64,9 @@ class ChunkedDownloader(object):
 
     LOG = logging.getLogger(__name__)
 
-    def __init__(self, server_url, device_id, media_folder, timeouts, media_cleaner):
-        self.HISRA_NET_LOC = urlparse(server_url).netloc
-        self.AUTHORIZATION_HEADER = 'Device %s' % device_id
-        self.MEDIA_FOLDER = media_folder
-        self.TIMEOUTS = timeouts # wait for bytes 60s wait to establish connection 60s
-        self.MEDIA_CLEANER = media_cleaner
+    def __init__(self, media_cleaner):
+        self.HISRA_NET_LOC = urlparse(SERVER_URL).netloc
+        self.MEDIA_CLEANER = MediaCleaner()
 
     def set_hisra_net_loc(self, server_media_url):
         netloc = urlparse(server_media_url).netloc
@@ -78,13 +77,14 @@ class ChunkedDownloader(object):
         url = content.content_uri
         headers = {'Content-Type':Media.VALID_CONTENT_TYPES[content.content_type]}
         if urlparse(url).netloc == self.HISRA_NET_LOC:
-            headers['Authorization'] = self.AUTHORIZATION_HEADER
+            headers['Authorization'] = AUTHORIZATION_HEADER
 
         response = requests.get(
-            url,
-            timeout=self.TIMEOUTS,
+            url=url,
+            timeout=MEDIA_DOWNLOAD_TIMEOUTS,
             stream=True,
-            headers=headers
+            headers=headers,
+            verify=SERVER_VERIFY
         )
 
         if response.status_code != 200:
@@ -102,7 +102,7 @@ class ChunkedDownloader(object):
 
         self.MEDIA_CLEANER.clean_media(content_length)
 
-        resumable_download = ResumableFileDownload(url, self.MEDIA_FOLDER, filename,
+        resumable_download = ResumableFileDownload(url, MEDIA_FOLDER, filename,
                                                    md5, content_length)
 
         if resumable_download.is_complete():
@@ -116,9 +116,10 @@ class ChunkedDownloader(object):
 
             headers['Range'] = 'bytes={0}-{1}'.format(bytes_downloaded, resumable_download.expected_size)
             response = requests.get(url=url,
-                                    timeout=self.TIMEOUTS,
+                                    timeout=MEDIA_DOWNLOAD_TIMEOUTS,
                                     stream=True,
-                                    headers=headers)
+                                    headers=headers,
+                                    verify=SERVER_VERIFY)
             if response.status_code != 206:
                 raise Exception("Requested a range(206) but got: %s", response.status_code)
 

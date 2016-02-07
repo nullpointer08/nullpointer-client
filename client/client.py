@@ -1,5 +1,6 @@
 from asynch_executor import AsynchExecutor
 import logging
+from settings import PLAYLIST_POLL_TIME
 import time
 from playlist_manager import PlaylistManager, PlaylistNotChanged
 from display.scheduler import Scheduler
@@ -10,11 +11,10 @@ class Client(object):
 
     LOG = logging.getLogger(__name__)
 
-    def __init__(self, config):
+    def __init__(self):
         self.executor = AsynchExecutor(2)
-        self.status_monitor = StatusMonitor(config)
-        self.pl_manager = PlaylistManager(config)
-        self.POLL_TIME = config.getfloat('Client', 'playlist_poll_time')
+        self.status_monitor = StatusMonitor()
+        self.pl_manager = PlaylistManager()
         self.scheduler = Scheduler()
 
     def schedule_playlist(self, playlist, playlist_id, playlist_update_time):
@@ -49,11 +49,11 @@ class Client(object):
                 self.LOG.info('Playlist has not been changed on the server. Asynch task was aborted.')
                 self.status_monitor.submit_collected_events()
                 return
-            self.LOG.error('Exception fetching playlist: {0}'.format(error.message))
+            self.LOG.error('Exception fetching playlist: %s', str(error))
             self.status_monitor.add_status(
                 StatusMonitor.EventTypes.ERROR,
                 StatusMonitor.Categories.CONNECTION,
-                str(error.message)
+                str(error)
             )
             self.LOG.debug('Creating status obj')
             self.status_monitor.submit_collected_events()
@@ -69,7 +69,7 @@ class Client(object):
                     )
                 else:
                     self.LOG.debug('Executor task queue is full')
-                time.sleep(self.POLL_TIME)
+                time.sleep(PLAYLIST_POLL_TIME)
         except KeyboardInterrupt:
             self.executor.shutdown()
             if self.scheduler:

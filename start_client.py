@@ -1,18 +1,11 @@
 import logging.config
 import os
-from optparse import OptionParser
-import subprocess
-import ConfigParser
 from client.client import Client
 
 START_PATH = os.path.dirname(os.path.realpath(__file__))
-START_SHELL_SCRIPT_NAME = 'start.sh'
-CONFIG_PATH = os.path.join(START_PATH, 'client/client.properties')
 
 '''
 A command line utility for starting the client.
-Use the -f or --fullscreen switch to start in fullscreen borderless mode
-using xinit (X cannot be on)
 '''
 
 
@@ -78,11 +71,9 @@ LOGGING_CONFIG = {
 
 
 def run():
-    config = ConfigParser.ConfigParser()
-    with open(CONFIG_PATH) as config_fp:
-        config.readfp(config_fp)
+    # Parse configuration to constants
     logging.config.dictConfig(LOGGING_CONFIG)
-    client = Client(config)
+    client = Client()
     client.start()
 
 

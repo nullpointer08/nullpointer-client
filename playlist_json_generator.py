@@ -1,6 +1,9 @@
 import json
 from display.media import Media
 from client.playlist_manager import PlaylistManager
+"""
+NOT MAINTAINED
+"""
 
 QUIT_STRING = '\\q'
 playlist = []

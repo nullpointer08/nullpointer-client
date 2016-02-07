@@ -1,8 +1,9 @@
 import requests
 import time
-from urlparse import urljoin
 import datetime
 import logging
+
+from settings import AUTHORIZATION_HEADER, SERVER_VERIFY, STATUS_URL, STATUS_TIMEOUTS, PLAYLIST_URL
 
 
 class StatusMonitor(object):
@@ -20,27 +21,9 @@ class StatusMonitor(object):
         CONNECTION = 'Connection'
         OMITTED_STATUSES = 'Omitted'
 
-    def __init__(self, config):
-        server_url = config.get('Server', 'server_url')
-        playlist_server_path = config.get('Server', 'playlist_server_path')
-        status_server_path = config.get('Server', 'status_server_path')
-        self.status_url = urljoin(server_url, status_server_path)
-        self.confirm_pl_url = urljoin(server_url, playlist_server_path)
-        # Device ID
-        device_id_file = open(config.get('Device', 'device_id_file'), 'r')
-        device_id = device_id_file.read().strip()
-        device_id_file.close()
-
-        status_connection_timeout = int(config.get('Client', 'status_connection_timeout'))
-        if status_connection_timeout == 0:
-            status_connection_timeout = None
-        status_bytes_timeout = int(config.get('Client', 'status_bytes_timeout'))
-        if status_bytes_timeout == 0:
-            status_bytes_timeout = None
-        self.timeouts = (status_bytes_timeout, status_connection_timeout)
-
+    def __init__(self):
         self.status_list = []
-        self.headers = {'Authorization':'Device {0}'.format(device_id)}
+        self.headers = {'Authorization': AUTHORIZATION_HEADER}
 
     def submit_collected_events(self):
         if len(self.status_list) == 0:
@@ -56,31 +39,37 @@ class StatusMonitor(object):
         self.LOG.debug('Headers: ', self.headers)
         try:
             response = requests.post(
-                self.status_url,
+                url=STATUS_URL,
                 json=data,
                 headers=self.headers,
-                timeout=self.timeouts
+                timeout=STATUS_TIMEOUTS,
+                verify=SERVER_VERIFY
             )
             if response.status_code == 201:
                 self.LOG.debug('Status list posted')
                 self.status_list = []
-        except requests.exceptions.RequestException as e:
-            self.LOG.error('Could not submit collected events. Exception: {0}'.format(e.message))
+        except Exception as e:
+            self.LOG.error('Could not submit collected events.')
 
     def add_status(self, event_type, event_category, event_description, event_time=None):
+
         if len(event_category) > 20:
             self.LOG.warn('Too long event category while adding status.')
             event_category = event_category[:20]
+
         if len(event_description) > 128:
             self.LOG.warn('Too long event description while adding status.')
             event_description = event_description[:128]
+
+        if not event_description:
+            event_description = 'No event description'
+
         if event_time is None:
             event_time = time.time()
             self.LOG.debug('event time was None')
 
-        event_time = datetime.datetime.fromtimestamp(
-            int(event_time)
-        ).strftime('%Y-%m-%d %H:%M:%S')
+        event_time = datetime.datetime.fromtimestamp(int(event_time)).strftime('%Y-%m-%d %H:%M:%S')
+
         self.LOG.debug('Creating status obj')
         status_obj = {
             'type': event_type,
@@ -88,6 +77,7 @@ class StatusMonitor(object):
             'time': event_time,
             'description': event_description
         }
+
         self.LOG.debug('Appending status')
         self.status_list.append(status_obj)
 
@@ -100,10 +90,11 @@ class StatusMonitor(object):
         }
         try:
             response = requests.put(
-                self.confirm_pl_url,
+                url=PLAYLIST_URL,
                 json=data,
                 headers=self.headers,
-                timeout=self.timeouts
+                timeout=STATUS_TIMEOUTS,
+                verify=SERVER_VERIFY
             )
             if response.status_code == 200:
                 self.LOG.debug('Playlist confirmed to server.')
@@ -117,5 +108,5 @@ class StatusMonitor(object):
                 'StatusMonitor',
                 'Could not confirm playlist use status: {0}'.format(response.status_code)
             )
-        except requests.exceptions.RequestException as e:
-            self.LOG.error('Could not confirm playlist use. Exception: {0}'.format(e.message))
+        except Exception as e:
+            self.LOG.error('Could not confirm playlist use.')
