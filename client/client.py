@@ -45,18 +45,21 @@ class Client(object):
 
         # Called by AsynchExecutor when there was an error
         def pl_fetch_error(error):
-            if isinstance(error, PlaylistNotChanged):
-                self.LOG.info('Playlist has not been changed on the server. Asynch task was aborted.')
+            try:
+                if isinstance(error, PlaylistNotChanged):
+                    self.LOG.info('Playlist has not been changed on the server. Asynch task was aborted.')
+                    self.status_monitor.submit_collected_events()
+                    return
+                self.LOG.error('Exception fetching playlist: %s', str(error))
+                self.status_monitor.add_status(
+                    StatusMonitor.EventTypes.ERROR,
+                    StatusMonitor.Categories.CONNECTION,
+                    str(error)
+                )
+                self.LOG.debug('Creating status obj')
                 self.status_monitor.submit_collected_events()
-                return
-            self.LOG.error('Exception fetching playlist: %s', str(error))
-            self.status_monitor.add_status(
-                StatusMonitor.EventTypes.ERROR,
-                StatusMonitor.Categories.CONNECTION,
-                str(error)
-            )
-            self.LOG.debug('Creating status obj')
-            self.status_monitor.submit_collected_events()
+            except Exception as e:
+                self.LOG.exception('Something went wrong with exception handling')
 
         self.executor.start()
         try:
