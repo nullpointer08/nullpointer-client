@@ -1,7 +1,6 @@
 '''
 Command line utility which installs all the requirements (APT and pip)
-Use the -c (or --configure) switch to also configure after installation
-of requirements.
+Adds supervisor task that starts the software when the pi is started and restarts it if it crashes
 
 Requires superuser priviledges
 '''
@@ -9,8 +8,6 @@ Requires superuser priviledges
 import os
 import subprocess
 import sys
-import configure
-from optparse import OptionParser
 
 APT_REQS = (
     'python-pip',
@@ -19,7 +16,7 @@ APT_REQS = (
     'xinit',
     'x11-xserver-utils',
     'supervisor',
-	'omxplayer'
+    'omxplayer'
 )
 
 PIP_REQS = (
@@ -78,6 +75,7 @@ user=pi
 
 XWRAPPER_CONF = "allowed_users=anybody"
 
+
 def install_apt_req(apt_req):
     retval = subprocess.call(
         ['apt-get', '-f', 'install', apt_req, '-y'],
@@ -108,6 +106,7 @@ def install_pip_req(pip_req):
 def is_pip_req_installed(req):
     return req in sys.modules
 
+
 def install_reqs(reqs, is_installed_func, install_func):
     pkg_count = 0
     for req in reqs:
@@ -122,6 +121,7 @@ def install_reqs(reqs, is_installed_func, install_func):
         pkg_count += 1
         print '%s/%s) %s: %s' % (pkg_count, len(reqs), req, status)
 
+
 def configure_supervisor():
     with open('/etc/supervisor/supervisord.conf', 'w') as config:
         config.write(SUPERVISORD_CONF)
@@ -129,9 +129,11 @@ def configure_supervisor():
     with open('/etc/supervisor/conf.d/nullpointer.conf', 'w') as config:
         config.write(SUPERVISOR_PROG_CONF)
 
+
 def configure_xwrapper():
     with open('/etc/X11/Xwrapper.config', 'w') as config:
         config.write(XWRAPPER_CONF)
+
 
 def create_xinit_shell_script():
     startup_script = open(os.path.join(START_PATH, XINIT_SHELL_SCRIPT), 'w')
@@ -157,19 +159,5 @@ def install():
     configure_xwrapper()
 
 if __name__ == '__main__':
-    parser = OptionParser()
-    parser.add_option(
-        '-c',
-        '--configure',
-        dest='configure',
-        action='store_true',
-        default=False,
-        help='Configure client properties after installation'
-    )
-    (options, args) = parser.parse_args()
-
     install()
-    configure.create_properties_with_default_values()
-    if options.configure:
-        configure.set_properties_from_user_input()
     DEVNULL.close()
