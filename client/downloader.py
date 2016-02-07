@@ -96,10 +96,8 @@ class ChunkedDownloader(object):
         filename = self.get_filename(response, url)
 
         md5 = response.headers.get('Content-MD5')
-        self.LOG.debug('HEADERS:')
-        self.LOG.debug(response.headers)
+        
         content_length = int(response.headers['Content-Length'])
-        self.LOG.debug(content_length)
         if content_length is None:
             raise Exception("Response from {0} had no content-length. Download aborted.".format(url))
 
@@ -113,23 +111,25 @@ class ChunkedDownloader(object):
             return resumable_download.complete_filepath
 
         bytes_downloaded = resumable_download.bytes_downloaded()
-        if bytes_downloaded > 0:
-            response.close()
-            self.LOG.debug('Resuming a download with range: %s-%s', bytes_downloaded, resumable_download.expected_size)
 
-            headers['Range'] = 'bytes={0}-{1}'.format(bytes_downloaded, resumable_download.expected_size)
-            response = requests.get(url=url,
-                                    timeout=MEDIA_DOWNLOAD_TIMEOUTS,
-                                    stream=True,
-                                    headers=headers,
-                                    verify=SERVER_VERIFY)
-            if response.status_code != 206:
-                raise Exception("Requested a range(206) but got: %s", response.status_code)
+        if bytes_downloaded < content_length:
+            if bytes_downloaded > 0:
+                response.close()
+                self.LOG.debug('Resuming a download with range: %s-%s', bytes_downloaded, resumable_download.expected_size)
 
-        resumable_download.stream_to_file(response.iter_content)
+                headers['Range'] = 'bytes={0}-{1}'.format(bytes_downloaded, resumable_download.expected_size)
+                response = requests.get(url=url,
+                                        timeout=MEDIA_DOWNLOAD_TIMEOUTS,
+                                        stream=True,
+                                        headers=headers,
+                                        verify=SERVER_VERIFY)
+                if response.status_code != 206:
+                    raise Exception("Requested a range(206) but got: %s", response.status_code)
 
+            resumable_download.stream_to_file(response.iter_content)
+
+        response.close()
         resumable_download.download_complete()
-
         return resumable_download.complete_filepath
 
     @staticmethod
