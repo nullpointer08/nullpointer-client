@@ -21,10 +21,12 @@ Better implementation for media downloader would probably be to
 (2.5. throw exception if not possible)
 3. download actual media
 
-
 Status messages are only stored in memory. Power loss causes unsent status messages to be lost. 
 
 If the connection is lost between the last downloaded media file and sending the confirmation message(under 100ms apart), the confirmation is never sent. 
 This does not occur often and the problem it causes it minimal, so a fix is left out of this version. 
 Could be fixed by storing confirmation messages, like status messages and sending them the same way as well.
 
+Exception handling(client.py pl_fetch_error(error)) is wrapped in an extra try-catch 
+because there were some broken exceptions(https://github.com/shazow/urllib3/issues/556) 
+thrown by urllib3 and we do not want exception handling to break the whole application

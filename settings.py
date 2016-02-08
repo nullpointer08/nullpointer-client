@@ -6,7 +6,7 @@ import os
 UNIQUE_DEVICE_ID = "abcdefghijklmnopqrstuvwxyz1234567890"
 
 # Server that serves playlist information
-SERVER_URL = "https://ikkuna.seepra.fi"
+SERVER_URL = "https://server.url:8000"
 
 # SETTINGS
 # Defaults should work. Change with care
@@ -15,7 +15,7 @@ SERVER_URL = "https://ikkuna.seepra.fi"
 # True / False / absolute_path_to_a_crt_file_that_should_used
 # NOTE: if crt file is not found defaults to True
 # False should only be used in development environment! Not for production. Security risk.
-SERVER_VERIFY = "/etc/ssl/certs/ca-certificates.crt"
+SERVER_VERIFY = True # "/etc/ssl/certs/ca-certificates.crt"
 
 # POLL TIME
 # How long should the PI wait between playlist update checks. Default 60 seconds.
