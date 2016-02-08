@@ -8,5 +8,5 @@
 7. git clone https://github.com/haltu/nullpointer-client.git
 8. cd nullpointer-client
 9. sudo python install.py
-10. edit settings.py
+10. Edit settings.py: nano settings.py 
 13. sudo reboot

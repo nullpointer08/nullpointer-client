@@ -33,47 +33,12 @@ Device ID and Device authentication:
 ------------
 Installation
 ------------
-The 'install.py' script will install the system and its requirements.
+Follow installation-instructions.txt
 
 -------------
 Configuration
 -------------
-The client is configured with the 'configuration.properties' file. The
-configuration can be generated and edited by the 'configure.py' script. The
-configuration items are described below.
-
-[Storage]
-  media_folder: the folder where media is downloaded to
-  playlist_file: the filepath where downloaded playlist JSON is dowloaded to
-  cleanup_threshold_mb: the number of megabytes of free space must be available
-      before old media is removed from the device
-  cleanup_extra_space_to_free_up_mb: the number of megabytes that are freed up
-      when a clean up of old media is required.
-
-[Device]
-  device_id_file: path of the file containing the 'unique device ID' (see
-      explanation in the 'Concepts' section above)
-
-[Client]
-  playlist_poll_time: the number of seconds between request to the server for
-      the most recent playlist set for the device
-  playlist_connection_timeout: the number of seconds after which the attempt to
-      connect to the playlist server is retried
-  playlist_bytes_timeout: the number of seconds to wait between bytes when
-      downloading media from the server. If this time is reached, a new attempt
-      is made to download the missing bytes.
-  status_connection_timeout: when connecting to the server to send status
-      updates, this is the number of seconds after which the connection attempt
-      is retried if the connection cannot be established
-  status_bytes_timeout: the number of seconds to wait between bytes when sending
-      status data to the server before the connection is retried
-
-[Server]
-  server_url: URL of the backend server. For example http://drajala.ddns.net
-  status_server_path: the path relative to the server_url to send status updates
-      to. For example /api/device/status
-  playlist_server_path: the path relative to the server_url from which playlists
-      are fetched. For example /api/device/playlist
+Edit settings.py
 
 ---
 Use
