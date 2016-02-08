@@ -38,6 +38,10 @@ STATUS_CONNECTION_TIMEOUT = 60
 MEDIA_DOWNLOAD_BYTES_TIMEOUT = 30
 MEDIA_DOWNLOAD_CONNECTION_TIMEOUT = 60
 
+# Media download chunk size.
+# Increase for quicker downloads with a better connections, decrease for slow connections
+MEDIA_DOWNLOAD_CHUNK_SIZE = 100000 # Bytes
+
 # MEDIA CLEANER
 # How many megabytes should be left free on the partition after a file has been downloaded.
 CLEANUP_THRESHOLD_IN_MEGABYTES = 10
@@ -46,7 +50,10 @@ EXTRA_SPACE_TO_FREE_UP_IN_MEGABYTES = 100
 
 # Local folders (defaults should be fine unless you are using the PI for something else as well)
 # can be dynamic or absolute
+
 # Where downloaded media should be stored
+# NOTE!: Media folder should never contain anything else.
+# Media cleaner removes files from this folder if the sd card gets full.
 MEDIA_FOLDER = "media/"
 # Where playlist file should be created
 PLAYLIST_FILEPATH = "playlist/playlist.json"

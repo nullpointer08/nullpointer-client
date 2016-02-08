@@ -2,7 +2,8 @@ import requests
 import logging
 import os
 from urlparse import urlparse
-from settings import SERVER_URL, AUTHORIZATION_HEADER, MEDIA_DOWNLOAD_TIMEOUTS, SERVER_VERIFY, MEDIA_FOLDER
+from settings import SERVER_URL, AUTHORIZATION_HEADER, MEDIA_DOWNLOAD_TIMEOUTS, SERVER_VERIFY, \
+    MEDIA_FOLDER, MEDIA_DOWNLOAD_CHUNK_SIZE
 import re
 import unicodedata
 from hashlib import md5 as md5sum
@@ -32,7 +33,7 @@ class ResumableFileDownload(object):
 
     def stream_to_file(self, iter_function):
         with open(self.incomplete_filepath, 'ab') as f:
-            for chunk in iter_function(chunk_size=1024):
+            for chunk in iter_function(chunk_size=MEDIA_DOWNLOAD_CHUNK_SIZE):
                 if chunk:
                     f.write(chunk)
             f.flush()
