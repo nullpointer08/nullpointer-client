@@ -20,8 +20,9 @@ APT_REQS = (
 )
 
 PIP_REQS = (
+    'pip==8.0.2',
     'sh==1.11',
-    'requests',
+    'requests==2.9.1',
     'certifi'
 )
 

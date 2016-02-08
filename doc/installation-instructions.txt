@@ -8,7 +8,5 @@
 7. git clone https://github.com/haltu/nullpointer-client.git
 8. cd nullpointer-client
 9. sudo python install.py
-10. sudo python configure.py
-11. give settings
-12. set unique_device_id to file /client/device_id.devid
+10. edit settings.py
 13. sudo reboot
